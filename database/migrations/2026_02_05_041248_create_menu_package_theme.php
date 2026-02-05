@@ -11,21 +11,21 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('themes', function (Blueprint $table) {
-            $table->uuid()->primary();
-            $table->string("name", 60);
+            $table->uuid("id")->primary();
+            $table->string("name", 60)->unique();
             $table->text("description");
             $table->timestamps();
         });
 
         Schema::create('categories', function (Blueprint $table) {
-            $table->uuid()->primary();
-            $table->string("name", 60);
+            $table->uuid("id")->primary();
+            $table->string("name", 60)->unique();
             $table->timestamps();
         });
 
          Schema::create('packages', function (Blueprint $table) {
-            $table->uuid()->primary();
-            $table->string("name", 60);
+            $table->uuid("id")->primary();
+            $table->string("name", 60)->unique();
             $table->text("description");
             $table->integer("minimum_order");
             $table->string("image_url", 265);

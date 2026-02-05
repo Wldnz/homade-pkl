@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('partners', function (Blueprint $table) {
-            $table->id();
+            $table->uuid("id")->primary();
+            $table->string("name", 120);
+            $table->string("image_url", 265);
             $table->timestamps();
         });
     }
