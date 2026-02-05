@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('themes', function (Blueprint $table) {
+            $table->uuid()->primary();
+            $table->string("name", 60);
+            $table->text("description");
+            $table->timestamps();
+        });
+
+        Schema::create('categories', function (Blueprint $table) {
+            $table->uuid()->primary();
+            $table->string("name", 60);
+            $table->timestamps();
+        });
+
+         Schema::create('packages', function (Blueprint $table) {
+            $table->uuid()->primary();
+            $table->string("name", 60);
+            $table->text("description");
+            $table->integer("minimum_order");
+            $table->string("image_url", 265);
+            $table->timestamps();
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('themes');
+        Schema::dropIfExists(table: 'packages');
+        Schema::dropIfExists('categories');
+    }
+};
