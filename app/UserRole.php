@@ -4,7 +4,7 @@ namespace App;
 
 enum UserRole : string
 {
-    const CUSTOMER = "customer";
-    const ADMIN = "admin";
-    const OWNER = "owner";
+    case CUSTOMER = "customer";
+    case ADMIN = "admin";
+    case OWNER = "owner";
 }

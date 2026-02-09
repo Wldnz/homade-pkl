@@ -19,14 +19,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string("phone_country_code", 4)->default("62");
             $table->string("phone", 12);
-            // $table->enum("role", UserRole::cases());
+            $table->enum("role", UserRole::cases())->default(UserRole::CUSTOMER);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
         });
 
-        Schema::create('user_addres', function (Blueprint $table) {
+        Schema::create('user_address', function (Blueprint $table) {
             $table->uuid("id")->primary();
             $table->foreignUuid("id_user");
             $table->string('address');

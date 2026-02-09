@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
             MenuSeeder::class,
             PartnerSeeder::class,
             SettingSeeder::class,
+            UserSeeder::class,
+            TransactionSeeder::class,
         ]);
     }
 }

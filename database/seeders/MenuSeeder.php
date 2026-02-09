@@ -24,7 +24,6 @@ class MenuSeeder extends Seeder
     {
         $menus = [
             [
-                "uuid" => fake()->uuid(),
                 "name" => "Nasi Kuning Ayam Goreng Lengkuas",
                 "description" => "ini makanannya enak banget...",
                 "vegetable" => "Lalapan",
@@ -32,7 +31,6 @@ class MenuSeeder extends Seeder
                 "chili_sauce" => "Sambal Goreng",
             ],
             [
-                "uuid" => fake()->uuid(),
                 "name" => "Nasi Kuning Tongkol Balado Suwir",
                 "description" => "ini makanannya enak banget...",
                 "vegetable" => "Lalapan",
@@ -40,7 +38,6 @@ class MenuSeeder extends Seeder
                 "chili_sauce" => "Sambal Goreng",
             ],
             [
-                "uuid" => fake()->uuid(),
                 "name" => "Mie Goreng Ayam (Mie Pengganti Nasi)",
                 "description" => "ini makanannya enak banget...",
                 "vegetable" => "Acar",
@@ -48,7 +45,6 @@ class MenuSeeder extends Seeder
                 "chili_sauce" => "Saus Sachet",
             ],
             [
-                "uuid" => fake()->uuid(),
                 "name" => "Ayam Cabe Garam",
                 "description" => "ini makanannya enak banget...",
                 "vegetable" => "Salad Jepang",
@@ -58,11 +54,11 @@ class MenuSeeder extends Seeder
         ];
 
         foreach ($menus as $menu) {
-            $packageID = Package::inRandomOrder()->value('uuid');
-            $categoryID = Category::inRandomOrder()->value('uuid');
-            $themeID = Theme::inRandomOrder()->value('uuid');
+            $packages = Package::inRandomOrder()->limit(3)->get('id');
+            $categories = Category::inRandomOrder()->limit(2)->get('id');
+            $themeID = Theme::inRandomOrder()->value('id');
 
-            Menu::create([
+            $newMenu = Menu::create([
                 "id_theme" => $themeID,
                 "name" => $menu['name'],
                 "description" => $menu['description'],
@@ -74,25 +70,29 @@ class MenuSeeder extends Seeder
                 "updated_at" => now()
             ]);
 
-            MenuCategory::create([
-                "id_category" => $categoryID,
-                "id_menu" => $menu['uuid'],
-                "created_at" => now(),
-                "updated_at" => now()
-            ]);
+            foreach ($categories as $category) {
+                MenuCategory::create([
+                    "id_category" => $category->id,
+                    "id_menu" => $newMenu->id,
+                    "created_at" => now(),
+                    "updated_at" => now()
+                ]);
+            }
 
-            MenuPrice::create([
-                "id_menu" => $menu["uuid"],
-                "id_package" => $packageID,
-                "price" => 230000,
-                "created_at" => now(),
-                "updated_at" => now(),
-            ]);
+            foreach ($packages as $package) {
+                MenuPrice::create([
+                    "id_menu" => $newMenu->id,
+                    "id_package" => $package->id,
+                    "price" => random_int(25000, 42000),
+                    "created_at" => now(),
+                    "updated_at" => now(),
+                ]);
+            }
 
             if (count($this->currentMenu) < 2) {
                 array_push($this->currentMenu, []);
                 MenuSchedule::create([
-                    "id_menu" => $menu["uuid"],
+                    "id_menu" => $newMenu->id,
                     "date_at" => now(),
                     "created_at" => now(),
                     "updated_at" => now(),
