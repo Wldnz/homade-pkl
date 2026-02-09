@@ -18,10 +18,11 @@ return new class extends Migration
             $table->enum("start_day", EnumDay::cases());
             $table->enum("end_day", EnumDay::cases());
             $table->string("customer_care_phone", 12);
-            $table->string('tiktok_url', 265);
-            $table->string('youtube_url', 265);
-            $table->string('facebook_url', 265);
-            $table->string('instagram_url', 265);
+            $table->string('tiktok_url', 265)->nullable();
+            $table->string('youtube_url', 265)->nullable();
+            $table->string('facebook_url', 265)->nullable();
+            $table->string('instagram_url', 265)->nullable();
+            $table->string('x_url', 265)->nullable();
             // $table->time("open_hours_at");
             // $table->time("close_hours_at");
             $table->timestamps();

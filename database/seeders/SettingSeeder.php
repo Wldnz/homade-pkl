@@ -15,12 +15,17 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         Setting::create([
-            "address" => "-",
+            "address" => "Jl.Tebet Timur Dalam VI No.3, RT.008 RW.011 Kel. Tebet Timur, Kec. Jakarta Selatan, Jakarta 12820 Telp. 0857-1180-1336.",
             "start_day" => EnumDay::MONDAY,
             "end_day" => EnumDay::FRIDAY,
             "customer_care_phone" => "081234567891",
             // "open_hours_at" => "time()",
             // "close_hours_at" => time(),
+            // "youtube_url" => ,
+            "instagram_url" => "https://www.instagram.com/homade.indonesia/?hl=id",
+            // "facebook_url" => ,
+            // "tiktok_url" => ,
+            // "x_url" => ,
             "created_at" => now(),
             "updated_at" => now(),
         ]);
