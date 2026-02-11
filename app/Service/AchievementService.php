@@ -6,7 +6,7 @@ use App\Models\Achievement;
 
 class AchievementService{
 
-    public function all(array $columns=['*']){
+    public function all(array $columns=[ 'name', 'description', 'date_at'  ]){
         return Achievement::all($columns);
     }
 
