@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             UserSeeder::class,
             TransactionSeeder::class,
+            AchievementSeeder::class
         ]);
     }
 }
