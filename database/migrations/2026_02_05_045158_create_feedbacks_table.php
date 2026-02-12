@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('feedbacks', function (Blueprint $table) {
-            $table->id();
+            $table->uuid("id")->primary();
+            $table->foreignUuid("id_user");
+            $table->text("value");
+            $table->decimal("ratings"); // gimana ya bingung kalo decimal
             $table->timestamps();
         });
     }

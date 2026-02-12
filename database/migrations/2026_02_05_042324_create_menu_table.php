@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('menus', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid("id")->primary();
             $table->foreignUuid("id_theme");
             $table->string("name", 120);
             $table->text("description");
@@ -20,26 +20,27 @@ return new class extends Migration
             $table->string("side_dish", 120);
             $table->string("chili_sauce", 120);
             $table->string("image_url", 265);
+            $table->boolean("is_active")->default(true);
             $table->timestamps();
         });
 
         Schema::create('menu_categories', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid("id")->primary();
             $table->foreignUuid("id_category");
             $table->foreignUuid("id_menu");
             $table->timestamps();
         });
 
-        Schema::create('menu_price', function (Blueprint $table) {
-            $table->uuid()->primary();
+        Schema::create('menu_prices', function (Blueprint $table) {
+            $table->uuid("id")->primary();
             $table->foreignUuid("id_menu");
-            $table->foreignUuid("id_packages");
+            $table->foreignUuid("id_package");
             $table->decimal("price", 10,2);
             $table->timestamps();
         });
 
         Schema::create('menu_schedules', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid("id")->primary();
             $table->foreignUuid("id_menu");
             $table->timestamp("date_at");
             $table->timestamps();
@@ -51,9 +52,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('menus');
         Schema::dropIfExists('menu_categories');
         Schema::dropIfExists('menu_price');
         Schema::dropIfExists('menu_schedules');
+        Schema::dropIfExists('menus');
     }
 };
