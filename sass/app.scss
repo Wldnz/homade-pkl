@@ -254,7 +254,7 @@ body
 {
     background-color: #d9d9d9;
     width: 100%;
-    min-height: 150dvh;
+    min-height: 100dvh;
     
     
     .wrapper-user
@@ -264,6 +264,136 @@ body
         flex-direction: column;
         align-items: center;
         gap: 30px;
+
+        &.login
+        {
+            width: 100vw;
+            height: 100dvh;
+            flex-direction: row-reverse;
+            gap: 0;
+            padding: 0;
+            margin: 0;
+
+            .bg-view
+            {
+                width: 100%;
+                height: 100%;
+
+                img
+                {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    filter: brightness(.5);
+                }
+            }
+
+            .container-login
+            {
+                width: 40%;
+                height: 100%;
+                flex-shrink: 0;
+                background-color: #cfcfcf;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 15px 30px;
+                align-items: center;
+                overflow: scroll;
+
+                .wrapper-img
+                {
+                    aspect-ratio: 16/6;
+                    margin-bottom: 20px;
+                    width: 50%;
+                    height: max-content;
+
+                    img
+                    {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+                }   
+
+                h2
+                {
+                    font-size: $font-size-l;   
+                }
+
+                h3
+                {
+                    font-size: $font-size-m;
+                    font-weight: 500;
+                    margin-bottom: 40px;
+                }
+
+                .container-input
+                {
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                    margin-bottom: 20px;
+
+                    label
+                    {
+                        width: 100%;
+                        font-size: $font-size-m;
+                    }
+
+                    
+                    .wrapper-input
+                    {
+                        width: 100%;
+                        height: 50px;
+                        display: flex;
+                        background-color: #fff;
+                        border-radius: 10px;
+                        
+                        input
+                        {
+                            padding: 0 10px;
+                            width: 100%;
+                            font-size: $font-size-m;
+                        }
+
+                        button
+                        {
+                            height: 100%;
+                            aspect-ratio: 1/1;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+                .submit
+                {
+                    width: 100%;
+                    height: 50px;
+                    border-radius: 10px;
+                    background-color: #9a9a9a;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: $font-size-m;
+                    font-weight: 500;
+                    margin-top: 20px;
+                }
+
+                .signup
+                {
+                    width: 100%;
+                    text-align: center;
+                    font-size: $font-size-s;
+                    font-weight: 400;
+                    margin-top: 5px;
+                }
+            }
+        }
         
         &.home
         {
@@ -880,7 +1010,6 @@ body
             .calendar
             {
                 width: 100%;
-                min-height: 300px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
@@ -965,8 +1094,8 @@ body
                 .body
                 {
                     width: 100%;
-                    height: 500px;
-                    background-color: teal;
+                    height: 450px;
+                    background-color: #2b2b2b;
                     border-radius: 10px;
                     display: flex;
                     gap: 2px;
@@ -975,10 +1104,112 @@ body
                     {
                         flex: 1;
                         height: 100%;
-                        background-color: #2b2b2b;
+                        background-color: #b4b4b4;
+                        display: flex;
+                        flex-direction: column;
+                        padding: 20px 20px 40px 20px;
+                        gap: 20px;
+                        overflow: hidden;
 
                         &.mon {border-radius: 10px 0 0 10px;}
                         &.fri {border-radius: 0 10px 10px 0;}
+
+                        .day-info
+                        {
+                            width: 100%;
+                            height: max-content;
+                            flex-shrink: 0;
+                            padding: 10px 0;
+                            margin-bottom: 10px;
+
+                            h2
+                            {
+                                font-size: $font-size-l;
+                                font-weight: 600;
+                            }
+
+                            h3
+                            {
+                                font-size: $font-size-m;
+                                font-weight: 500;
+                            }
+                        }
+
+                        .container-menu
+                        {
+                            flex: 1;
+                            width: 100%;
+                            overflow: hidden;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+
+                            .menu
+                            {
+                                display: flex;
+                                width: 100%;
+                                height: 100%;
+                                flex-direction: column;
+                                overflow: hidden;
+                                border-radius: 20px;
+                                background-color: #bebebe;
+
+                                .wrapper-img
+                                {
+                                    width: 100%;
+                                    height: 70%;
+                                    display: flex;
+                                    border-radius: inherit;
+                                    position: relative;
+
+                                    img
+                                    {
+                                        border-radius: inherit;
+                                        width: 100%;
+                                        height: 100%;
+                                        object-fit: cover;
+                                    }
+
+                                    span
+                                    {
+                                        position: absolute;
+                                        width: max-content;
+                                        height: max-content;
+                                        padding: 2px 10px;
+                                        background-color: #fff;
+                                        font-size: $font-size-s;
+                                        border-radius: 50px;
+                                        font-weight: 550;
+                                        left: 10px;
+                                        top: 10px;
+                                    }
+                                }
+
+                                .food-info
+                                {
+                                    width: 100%;
+                                    height: 30%;
+                                    flex-shrink: 0;
+                                    overflow: hidden;
+                                    padding: 10px 20px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 5px;
+
+                                    h3
+                                    {
+                                        width: 100%;
+                                        height: max-content;
+                                        flex-shrink: 0;
+                                        white-space: nowrap;
+                                        font-size: calc($font-size-s * 1);
+                                        font-weight: 500;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -993,11 +1224,107 @@ body
                     {
                         flex: 1;
                         height: 100%;
-                        background-color: teal;
+                        background-color: #b8b8b8;
                         border-radius: 10px;
+                        padding: 20px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+
+                        h2
+                        {
+                            font-size: $font-size-m;
+                            width: 100%;
+                            height: max-content;
+                            text-align: left;
+                            font-weight: 600;
+                            margin-bottom: 5px;
+                            display: flex;
+                            gap: 5px;
+                            align-items: center;
+                            justify-content: start;
+
+                            img
+                            {
+                                height: 1.2em;
+                                filter: $filter-text;
+                            }
+                        }
+
+                        h3
+                        {
+                            font-size: $font-size-s;
+                            font-weight: 550;
+                            width: 100%;
+                            height: max-content;
+                        }
+
+                        &.info
+                        {
+                            h2
+                            {
+                                margin-bottom: 10px;
+                            }
+                            
+                            h3
+                            {
+                                position: relative;
+                                padding: 0 0 0 15px;
+
+                                &::after
+                                {
+                                    position: absolute;
+                                    height: 35%;
+                                    aspect-ratio: 1/1;
+                                    content: "";
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    left: 0;
+                                    background-color: #000;
+                                    background-color: $color-text;
+                                    border-radius: 999px;
+                                }
+                            }
+                        }
+
+                        &.contact
+                        {
+                            gap: 5px;
+
+                            h2
+                            {
+                                justify-content: center;
+                            }
+
+                            h3
+                            {
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                gap: 5px;
+                                font-size: $font-size-m;
+                                
+                                img
+                                {
+                                    height: 1.2em;
+                                    filter: $filter-text;
+                                    display: none;
+                                }
+                            }
+
+                            h4
+                            {
+                                font-size: $font-size-s;
+                                width: 100%;
+                                text-align: center;
+                                font-weight: 500;
+                            }
+                        }
                     }
                 }
             }
         }
+
+
     }
 }

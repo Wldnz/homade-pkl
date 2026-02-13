@@ -11,7 +11,7 @@
 
     <div class="container-links">
         <a href="/" class="{{ $page === "home" ? "active" : "" }}">Home</a>
-        <a href="/menu" class="{{ $page === "menu" ? "active" : "" }}">Menu</a>
+        <a href="/menus" class="{{ $page === "menu" ? "active" : "" }}">Menu</a>
         <a href="/schedule" class="{{ $page === "schedule" ? "active" : "" }}">Jadwal</a>
         <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Profil</a>
         <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Kontak</a>
