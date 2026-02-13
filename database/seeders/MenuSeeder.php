@@ -29,6 +29,7 @@ class MenuSeeder extends Seeder
                 "vegetable" => "Lalapan",
                 "side_dish" => "Tempe orek Kering, Telur Dadar Iris",
                 "chili_sauce" => "Sambal Goreng",
+                "date_at" => now(),
             ],
             [
                 "name" => "Nasi Kuning Tongkol Balado Suwir",
@@ -36,6 +37,7 @@ class MenuSeeder extends Seeder
                 "vegetable" => "Lalapan",
                 "side_dish" => "Tempe orek Kering, Telur Dadar Iris",
                 "chili_sauce" => "Sambal Goreng",
+                "date_at" => now(),
             ],
             [
                 "name" => "Mie Goreng Ayam (Mie Pengganti Nasi)",
@@ -43,6 +45,7 @@ class MenuSeeder extends Seeder
                 "vegetable" => "Acar",
                 "side_dish" => "Telor Ceplok",
                 "chili_sauce" => "Saus Sachet",
+                "date_at" => now()->addDays(1),
             ],
             [
                 "name" => "Ayam Cabe Garam",
@@ -50,7 +53,8 @@ class MenuSeeder extends Seeder
                 "vegetable" => "Salad Jepang",
                 "side_dish" => "Scrambled Egg",
                 "chili_sauce" => "Chili Oil",
-            ]
+                "date_at" => now()->addDays(1),
+            ],
         ];
 
         foreach ($menus as $menu) {
@@ -88,16 +92,12 @@ class MenuSeeder extends Seeder
                     "updated_at" => now(),
                 ]);
             }
-
-            if (count($this->currentMenu) < 2) {
-                array_push($this->currentMenu, []);
-                MenuSchedule::create([
-                    "id_menu" => $newMenu->id,
-                    "date_at" => now(),
-                    "created_at" => now(),
-                    "updated_at" => now(),
-                ]);
-            }
+            MenuSchedule::create([
+                "id_menu" => $newMenu->id,
+                "date_at" => $menu['date_at'],
+                "created_at" => now(),
+                "updated_at" => now(),
+            ]);
         }
     }
 }

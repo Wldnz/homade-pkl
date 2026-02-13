@@ -1,15 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\ResponseData;
 use Auth;
-use Dotenv\Repository\RepositoryInterface;
 use Hash;
-use Illuminate\Auth\Events\Attempting;
 use Illuminate\Http\Request;
-use Response;
 use Validator;
 
 class AuthController extends Controller
@@ -22,11 +20,7 @@ class AuthController extends Controller
         $this->responseData = new ResponseData();
     }
 
-    public function signin(){
-        return view('signin');
-    }
-
-    public function signinHandler(Request $request)
+    public function signin(Request $request)
     {
 
         $credential = Validator::make($request->all(), [
@@ -35,46 +29,38 @@ class AuthController extends Controller
         ]);
 
         if ($credential->fails()) {
-            $response = $this->responseData->create(
+            return $this->responseData->create(
                 'Data Yang Dimasukkan Belum Valid Nih!',
                 data: $credential->errors(),
                 status: 'warning',
                 status_code: 422,
             );
-            return redirect()->back(422)->with($response);
         }
 
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            $response = $this->responseData->create(
+            return $this->responseData->create(
                 'Tidak dapat menemukan email',
                 status: 'warning',
                 status_code: 404,
             );
-            return redirect()->back(404)->with($response);
         }
 
         if (!Hash::check($request->password, $user->password)) {
-            $response = $this->responseData->create(
+            return $this->responseData->create(
                 'Password Yang Anda Masukkan Tidak Valid!',
                 status: 'warning',
                 status_code: 404,
             );
-            return redirect()->back(404)->with($response);
         }
 
         Auth::login($user);
-        session()->regenerate();
-    //    sementatara return ke dashboard dlu ya...
-        return redirect()->to('/');
+
+        return $this->responseData->create(
+            'Berhasil Masuk!',
+        );
+
     }
 
-    public function signout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerate();
-        return redirect('/');
-    }
 }
