@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UserController;
@@ -19,6 +20,18 @@ Route::name('user')->group(function () {
     Route::post('/signin', [ AuthController::class, 'signinHandler' ])->name('signin-handler');
 
 
+});
+
+Route::name('admin')->prefix('admin')->group(function (){
+
+    // dashboar, kelola menu, jdwal dan pemesanan
+
+    Route::get('/dashboard', [ AdminController::class, 'dashboard' ])->name('dashboard');
+    Route::get('/menus', [ AdminController::class, 'menus' ])->name('menus');
+    Route::get('/schedules', [ AdminController::class, 'schedules' ])->name('schedules');
+    Route::get('/orders', [ AdminController::class, 'orders' ])->name('orders');
+    Route::get('/orders/{id}', [ AdminController::class, 'detailOrder' ])->name('detail-order');
+    Route::get('/signin', [ AdminController::class, 'signin' ])->name('signin');
 });
 
 
