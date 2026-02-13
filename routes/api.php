@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -23,8 +23,9 @@ Route::middleware([])->group(function() {
 
     Route::get('/additional', [ DocumentationController::class, 'additional' ])->name('additional');
 
+    Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
 
 })->name('user');
 
 
-Route::get('/auth', [ AuthController::class, "signin" ]);
+// Route::get('/auth', [ AuthController::class, "signin" ]);

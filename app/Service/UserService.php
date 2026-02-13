@@ -1,20 +1,30 @@
 <?php
 namespace App\Service;
 
+use App\Models\User;
+use Auth;
+use Hash;
+
 class UserService
 {
     // dokumentasi ini gimana ya? kayak ada param parammnya gitu
     // ada log, alert?, response
-    public function login(array $data){
+    public function login(
+        array $credential,
+        bool $isRemember = false
+    ){ 
+        if(Auth::attempt($credential, $isRemember)){
+            session()->regenerate();
 
-        if(empty($data['email']) && empty($data['password'])){
-            return json_encode([
-                "message" => "Pastikan alamat email dan kata sandi itu sudah berisi",
-                "code" => 400,
-            ]);
         }
-     
-        return false;
-
     }
+
+    public function register($user){
+        $user['password'] = Hash::make($user['password']);
+        User::save($user);
+
+        // if()
+
+    } 
+
 }

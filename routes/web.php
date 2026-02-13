@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +15,9 @@ Route::name('user')->group(function () {
     // buat autentikasi disini banh
 
     Route::get('/signup', [ UserController::class, 'signup' ])->name('signup');
-    Route::get('/signin', [ UserController::class, 'signin' ])->name('signup');
+    Route::get('/signin', [ UserController::class, 'signin' ])->name('signin');
+    Route::post('/signin', [ AuthController::class, 'signinHandler' ])->name('signin-handler');
+
 
 });
 
