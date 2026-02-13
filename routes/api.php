@@ -24,6 +24,7 @@ Route::middleware([])->group(function() {
     Route::get('/additional', [ DocumentationController::class, 'additional' ])->name('additional');
 
     Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
+    Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
 
 })->name('user');
 

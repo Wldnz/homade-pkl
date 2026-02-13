@@ -18,7 +18,7 @@ Route::name('user')->group(function () {
     Route::get('/signup', [ UserController::class, 'signup' ])->name('signup');
     Route::get('/signin', [ UserController::class, 'signin' ])->name('signin');
     Route::post('/signin', [ AuthController::class, 'signinHandler' ])->name('signin-handler');
-
+    Route::post('/signup', [ AuthController::class, 'signupHandler' ])->name('signup-handler');
 
 });
 

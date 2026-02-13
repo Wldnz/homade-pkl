@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('last_name', 120);
             $table->string('email')->unique();
             $table->string("phone_country_code", 4)->default("62");
-            $table->string("phone", 12);
+            $table->string("phone", 12)->nullable();
             $table->enum("role", UserRole::cases())->default(UserRole::CUSTOMER);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
