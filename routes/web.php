@@ -14,8 +14,8 @@ Route::name('user')->group(function () {
 
     // buat autentikasi disini banh
 
-    Route::get('/signup', [ UserController::class, 'signup' ])->name('signup');
-    Route::get('/signin', [ UserController::class, 'signin' ])->name('signin');
+    Route::get('/signup', [ AuthController::class, 'signup' ])->name('signup');
+    Route::get('/signin', [ AuthController::class, 'signin' ])->name('signin');
     Route::post('/signin', [ AuthController::class, 'signinHandler' ])->name('signin-handler');
     Route::post('/signup', [ AuthController::class, 'signupHandler' ])->name('signup-handler');
 

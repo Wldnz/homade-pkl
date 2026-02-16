@@ -4,15 +4,14 @@ namespace App\Service;
 use App\Models\User;
 use Auth;
 use Exception;
-use Hash;
 use Log;
 
 class UserService
 {
 
-    // public function getById(string $id){
-    //     return User::find($id)->first();
-    // }
+    public function currentUser(){
+        return auth()->user();
+    }
 
     public function getByEmail(
         string $email,

@@ -11,6 +11,7 @@ use Exception;
 use Hash;
 use Illuminate\Http\Request;
 use Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Validator;
 
 class AuthController extends Controller
@@ -140,5 +141,14 @@ class AuthController extends Controller
             );
         }
     }
+
+    public function signout(){
+        auth::logout();
+        return $this->responseData->create(
+            'Successfully Sign out!!',
+        );
+    }
+
+    // public function
 
 }
