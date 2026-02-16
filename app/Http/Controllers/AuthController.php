@@ -6,15 +6,11 @@ use App\Models\User;
 use App\ResponseData;
 use App\Service\UserService;
 use Auth;
-use Dotenv\Repository\RepositoryInterface;
 use Exception;
 use Hash;
-use Illuminate\Auth\Events\Attempting;
 use Illuminate\Http\Request;
 use Log;
-use Response;
 use Validator;
-use function PHPUnit\Framework\isJson;
 
 class AuthController extends Controller
 {
@@ -53,7 +49,7 @@ class AuthController extends Controller
                 status_code: 422,
                 isJson:false
             );
-            return redirect()->back(422)->with($response);
+            return redirect()->back()->with($response);
         }
 
         $user = User::where('email', $request->email)->first();
@@ -65,7 +61,7 @@ class AuthController extends Controller
                 status_code: 404,
                 isJson:false
             );
-            return redirect()->back(404)->with($response);
+            return redirect()->back()->with( $response);
         }
 
         if (!Hash::check($request->password, $user->password)) {
@@ -75,13 +71,13 @@ class AuthController extends Controller
                 status_code: 404,
                 isJson:false
             );
-            return redirect()->back(404)->with($response);
+            return redirect()->back()->with($response);
         }
 
         Auth::login($user);
         session()->regenerate();
-    //    sementatara return ke dashboard dlu ya...
-        return redirect()->to('/');
+        //sementatara return ke dashboard dlu ya...
+        return redirect()->to($request->query('redirect_url', '/'));
     }
 
      public function signupHandler(Request $request)
@@ -101,7 +97,7 @@ class AuthController extends Controller
                 status_code: 422,
                 isJson:false
             );
-            return redirect()->back(422)->with($response);
+            return redirect()->back()->with($response);
         }
 
         $user = $this->userService->getByEmail($request->email);
@@ -113,7 +109,7 @@ class AuthController extends Controller
                 status_code: 403,
                 isJson:false
             );
-            return redirect()->back(403)->with($response); 
+            return redirect()->back()->with($response); 
         }
 
 
@@ -134,7 +130,7 @@ class AuthController extends Controller
                     status_code: 404,
                     isJson : false,
                 );
-                return redirect()->back(404)->with($response);
+                return redirect()->back()->with($response);
             }
 
             $response =  $this->responseData->create(
@@ -150,7 +146,10 @@ class AuthController extends Controller
                 isJson:false,
             );
 
-            return redirect()->to('/')->with($response);
+            Auth::login($user);
+            session()->regenerate();
+
+            return redirect()->to($request->query('redirect_url', '/'))->with($response);
 
         } catch (Exception $e) {
             Log::error($e->getMessage());

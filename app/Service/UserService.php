@@ -30,7 +30,7 @@ class UserService
     }
 
     public function login(User $user, $isRemember = true){
-        return Auth::login($user);
+        return Auth::login($user, $isRemember);
     }
 
 

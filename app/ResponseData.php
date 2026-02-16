@@ -22,6 +22,7 @@ class ResponseData
         $response = [
             'message' => $message,
             'status' => $status,
+            'status_code' => $status_code
         ];
         if ($error) {
             $response['error'] = $error;

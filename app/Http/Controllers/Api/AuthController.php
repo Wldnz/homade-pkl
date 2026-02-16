@@ -43,7 +43,6 @@ class AuthController extends Controller
             );
         }
 
-
         $user = $this->userService->getByEmail($request->email);
 
         if (!$user) {
@@ -62,10 +61,15 @@ class AuthController extends Controller
             );
         }
 
-        $this->userService->login($user);
-
         return $this->responseData->create(
             'Berhasil Masuk!',
+            [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'token' => auth()->guard('api')->login($user),
+            ],
         );
     }
     public function signup(Request $request)
@@ -96,7 +100,6 @@ class AuthController extends Controller
             );
         }
 
-
         try {
             $this->userService->save([
                 'first_name' => $request->first_name,
@@ -121,7 +124,8 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
-                    'email'=> $user->email,
+                    'email' => $user->email,
+                    'token' => auth()->guard('api')->login($user),
                 ],
                 status: 'success',
                 status_code: 201

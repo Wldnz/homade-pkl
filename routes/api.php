@@ -6,12 +6,12 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 
-Route::middleware([])->group(function() {
+Route::name('api')->group(function() {
     
     Route::get('/menus', [ DocumentationController::class, 'userMenus' ])->name('menus');
     Route::get('/menus/{id}', [ DocumentationController::class, 'userDetailMenu' ])->name('detail-menu');
@@ -26,7 +26,9 @@ Route::middleware([])->group(function() {
     Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
     Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
 
-})->name('user');
-
+    Route::get('/user', function(){
+        return auth()->user();
+    })->middleware('auth:api')->name('get');
+});
 
 // Route::get('/auth', [ AuthController::class, "signin" ]);
