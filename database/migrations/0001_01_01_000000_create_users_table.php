@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('first_name', 120);
             $table->string('last_name', 120);
             $table->string('email')->unique();
-            $table->string("phone_country_code", 4)->default("62");
-            $table->string("phone", 12)->nullable();
             $table->enum("role", UserRole::cases())->default(UserRole::CUSTOMER);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -29,10 +27,13 @@ return new class extends Migration
         Schema::create('user_address', function (Blueprint $table) {
             $table->uuid("id")->primary();
             $table->foreignUuid("id_user");
+            $table->string('received_name', 120);
+            $table->string("phone", 15)->nullable();
+            $table->string('label', 60);
             $table->string('address');
-            $table->string("city", 120);
-            $table->string("province", 120);
-            $table->string("zip_code", 10);
+            $table->text('note')->nullable();
+            $table->decimal('longitude', 11, 8);
+            $table->decimal('latitude', 10, 8);
             $table->timestamps();
         });
 

@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\MenuPrice;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\TransactionAddress;
 use App\Models\User;
+use App\Models\UserAddress;
 use App\StatusTransaction;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -52,14 +54,22 @@ class TransactionSeeder extends Seeder
                 }
             }
 
+            $shippingCost = 5000;
+            $userId = User::inRandomOrder()->where("role", "=", "customer")->value("id");
+            $userAddress = UserAddress::inRandomOrder()->where('id_user', $userId)->first();
+        
             $newTransaction = Transaction::create([
-                "id_user" => User::inRandomOrder()->where("role", "=", "customer")->value("id"),
-                "total_price" => $totalPrice,
-                "total_menu" => count($orders),
+                "id_user" => $userId,
+                "subtotal" => $totalPrice,
+                "shipping_cost" => $shippingCost,
+                "total_price" => $totalPrice + $shippingCost,
                 "status" => $transaction['status'],
+                "delivery_at" => now()->addDays(1),
                 "created_at" => now(),
                 "updated_at" => now()
             ]);
+
+
 
             foreach ($orders as $order) {
                 Order::create([
@@ -72,6 +82,19 @@ class TransactionSeeder extends Seeder
                     "updated_at" => now()
                 ]);
             }
+
+            TransactionAddress::create([
+                'id_transaction' => $newTransaction->id,
+                'received_name' => $userAddress->received_name,
+                'phone' => $userAddress->phone,
+                'label' => $userAddress->label,
+                'address' => $userAddress->address,
+                'note' => $userAddress->note,
+                'longitude' => $userAddress->longitude,
+                'latitude' => $userAddress->latitude,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
         }
 
