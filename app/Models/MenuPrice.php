@@ -9,7 +9,15 @@ class MenuPrice extends Model
 {
     use HasUuids;
 
-    public function packages(){
+    public function menu(){
+        return $this->belongsTo(Menu::class, 'id_menu')
+        ->with([
+            'theme',
+            'menu_categories'
+        ]);
+    }
+
+    public function package(){
         return $this->belongsTo(Package::class, 'id_package')
         ->select(['id', 'name', 'description', 'minimum_order', 'image_url']);
     }

@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     use HasUuids;
+
+    public function orders(){
+        return $this->hasMany(Order::class, 'id_transaction')
+        ->with('menu_price');        
+    }
+
 }

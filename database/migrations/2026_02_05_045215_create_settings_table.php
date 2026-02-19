@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum("start_day", EnumDay::cases());
             $table->enum("end_day", EnumDay::cases());
             $table->string("email", 255);
-            $table->string("customer_care_phone", 12);
+            $table->string("customer_care_phone", 15);
             $table->string('tiktok_url', 265)->nullable();
             $table->string('youtube_url', 265)->nullable();
             $table->string('facebook_url', 265)->nullable();

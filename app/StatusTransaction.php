@@ -8,5 +8,6 @@ enum StatusTransaction : string
     case PAID = "paid";
     case SUCCESS  = "success";
     case FAILED = "failed";
-    case CANCELLED ="cancelled";
+    case CANCELLED_BY_ADMIN = "cancelled_by_admin";
+    case CANCELLED_BY_CUSTOMER = "cancelled_by_customer"; 
 }
