@@ -8,7 +8,10 @@ use App\Models\Transaction;
 use App\Models\TransactionAddress;
 use App\Models\User;
 use App\Models\UserAddress;
+use App\RefundStatus;
+use App\StatusDelivery;
 use App\StatusTransaction;
+use App\TransactionCategory;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,81 +25,120 @@ class TransactionSeeder extends Seeder
 
         $transactions = [
             [
-                "total_menu" => 2,
-                "note" => "Bang, Terima Kasih Banyak ya!",
-                "status" => StatusTransaction::SUCCESS,
+                'status' => StatusTransaction::PAID,
+                'status_delivery' => StatusDelivery::PROCESS,
+                'shipping_cost' => 10000,
+                'delivery_at' => now()->addDays(2),
+                'notes' => [
+                    'Bang ini jangan pake nasi ya!',
+                    'tolong sambelnya yang sasetan aja ya bang',
+                    'ini makanannya jangan di kasih sayuran ya bang!'
+                ]
             ],
             [
-                "total_menu" => 1,
-                "note" => "Gak Pedes ya bang",
-                "status" => StatusTransaction::PENDING,
+                'status' => StatusTransaction::PENDING,
+                'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
+                'delivery_at' => now()->addDays(1),
+                'notes' => [
+                    'Bang ini jangan pake nasi ya!',
+                ]
+            ],
+            [
+                'status' => StatusTransaction::SUCCESS,
+                'status_delivery' => StatusDelivery::DELIVERED,
+                'delivery_at' => now()->addDays(1),
+                'notes' => [
+                    'Bang ini jangan pake ikan ya!',
+                ]
+            ],
+            [
+                'status' => StatusTransaction::CANCELLED_BY_ADMIN,
+                'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
+                'refund_status' => RefundStatus::SUCCESS,
+                'category' => TransactionCategory::PRE_ORDER,
+                'refund_notes' => 'maaf jarak tempuhnya jauh dan kondisi tidak memungkinkan 🙏',
+                'delivery_at' => now()->addDays(1),
+                'notes' => [
+                    'Bang ini jangan pake sambel ya!',
+                ]
+            ],
+             [
+                'status' => StatusTransaction::CANCELLED_BY_CUSTOMER,
+                'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
+                'refund_status' => RefundStatus::PENDING,
+                'shipping_cost' => 15000,
+                'refund_notes' => 'maaf saya tidak setuju dengan ongkir yang saya mahal....',
+                'delivery_at' => now()->addDays(1),
+                'notes' => [
+                    'Bang ini jangan pake nasi ya!',
+                ]
             ]
         ];
 
-        foreach ($transactions as $transaction) {
-
-            $totalPrice = 0;
-
-            $orders = [];
-
-            for ($i = 0; $i < $transaction['total_menu']; $i++) {
-                $menuPrice = MenuPrice::inRandomOrder()->first();
-                $totalMenu = random_int(1, 10);
-                $isAlreadyIncluded = array_search(['id_menu_price' => $menuPrice->id], $orders);
-                if ($isAlreadyIncluded) {
+        $users = User::where('role', 'customer')->get();
+        $shippingCost = 5000;
+        foreach($users as $user){
+            foreach($transactions as $transaction){
+                $subtotal = 0;            
+                $orders = [];
+                foreach($transaction['notes'] as $note){
+                    $menuPrice = MenuPrice::inRandomOrder()->first();
+                    $quantity = random_int(5, 120);
                     array_push($orders, [
-                        "id_menu_price" => $menuPrice->id,
-                        "total_price" => $menuPrice->price * $totalMenu,
-                        "quantity" => $totalMenu,
-                        "note" => $transaction['note']
+                        'id_menu_price' => $menuPrice->id,
+                        'total_price' => $menuPrice->price * $quantity,
+                        'quantity' => $quantity,
+                        'note' => $note
                     ]);
-                    $totalPrice += $menuPrice->price * $totalMenu;
+                    $subtotal += $menuPrice->price * $quantity;
                 }
-            }
 
-            $shippingCost = 5000;
-            $userId = User::inRandomOrder()->where("role", "=", "customer")->value("id");
-            $userAddress = UserAddress::inRandomOrder()->where('id_user', $userId)->first();
-        
-            $newTransaction = Transaction::create([
-                "id_user" => $userId,
-                "subtotal" => $totalPrice,
-                "shipping_cost" => $shippingCost,
-                "total_price" => $totalPrice + $shippingCost,
-                "status" => $transaction['status'],
-                "delivery_at" => now()->addDays(1),
-                "created_at" => now(),
-                "updated_at" => now()
-            ]);
+                $final_shipping_cost = $transaction['shipping_cost'] ?? $shippingCost; 
 
-
-
-            foreach ($orders as $order) {
-                Order::create([
-                    "id_transaction" => $newTransaction->id,
-                    "id_menu_price" => $order['id_menu_price'],
-                    "total_price" => $order['total_price'],
-                    "quantity" => $order['quantity'],
-                    "note" => $order['note'],
-                    "created_at" => now(),
-                    "updated_at" => now()
+                $createdTransaction = Transaction::create([
+                    'id_user' => $user->id,
+                    'subtotal' => $subtotal,
+                    'shipping_cost' => $final_shipping_cost,
+                    'total_price' => $final_shipping_cost + $subtotal,
+                    'category' => $transaction['category'] ?? TransactionCategory::ORDER,
+                    'status' => $transaction['status'],
+                    'status_delivery' => $transaction['status_delivery'],
+                    'refund_status' => $transaction['refund_status'] ?? RefundStatus::NONE,
+                    'refund_reason' => $transaction['refund_reason'] ?? null,
+                    'delivery_at' => $transaction['delivery_at'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
-            }
 
-            TransactionAddress::create([
-                'id_transaction' => $newTransaction->id,
-                'received_name' => $userAddress->received_name,
-                'phone' => $userAddress->phone,
-                'label' => $userAddress->label,
-                'address' => $userAddress->address,
-                'note' => $userAddress->note,
-                'longitude' => $userAddress->longitude,
-                'latitude' => $userAddress->latitude,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                foreach($orders as $order){
+                    Order::create([
+                        'id_transaction' => $createdTransaction->id,
+                        'id_menu_price' => $order['id_menu_price'],
+                        'total_price' => $order['total_price'],
+                        'quantity' => $order['quantity'],
+                        'note' => $order['note'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                $address = UserAddress::where('id_user',$user->id)->inRandomOrder()->first();
+
+                TransactionAddress::create([
+                    'id_transaction' => $createdTransaction->id,
+                    'received_name' => $address->received_name,
+                    'phone' => $address->phone,
+                    'label' => $address->label,
+                    'address' => $address->address,
+                    'note' => $address->note,
+                    'longitude' => $address->longitude,
+                    'latitude' => $address->latitude,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            }
 
         }
-
     }
 }
