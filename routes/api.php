@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::name('api')->group(function() {
     
+    Route::get('/test', function(){
+        return response()->json(['message' => 'hello']);
+    });
+
     // Route::get('/menus', [ DocumentationController::class, 'userMenus' ])->name('menus');
     // Route::get('/menus/{id}', [ DocumentationController::class, 'userDetailMenu' ])->name('detail-menu');
 
@@ -21,11 +26,14 @@ Route::name('api')->group(function() {
 
     // Route::get('/additional', [ DocumentationController::class, 'additional' ])->name('additional');
 
+    
     Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
     Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
-
+    
     Route::middleware('auth:api')->group(function (){
         Route::get('/me', [ UserController::class, 'me' ])->name('me');
+        Route::get('/orders', [ TransactionController::class, 'all' ])->name('orders');
+        Route::get('/orders/{id}', [ TransactionController::class, 'detailOrder' ])->name('detail-order');
     });
 
 });

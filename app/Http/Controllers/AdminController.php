@@ -8,7 +8,7 @@ class AdminController extends Controller
 {
 
     public function signin(){
-        return view('signin');
+        return view('admin.signin');
     }
 
     public function dashboard(){
@@ -16,7 +16,7 @@ class AdminController extends Controller
     }
 
     public function menus(){
-        return view('menus');
+        return view('admin.menus');
     }
 
     public function schedules(){
