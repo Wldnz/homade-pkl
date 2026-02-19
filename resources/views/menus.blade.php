@@ -61,8 +61,7 @@
                 </div>
             </section>
 
-            @foreach (range(1, 3) as $j)
-            <section class="food ayam">
+            <section class="food ikan">
                 <h2>Ayam</h2>
                 <h3>23 menu masakan ayam enak ala homade.</h3>
                 <div class="container-food">
@@ -76,7 +75,36 @@
                     @endforeach
                 </div>
             </section>
-            @endforeach
+
+            <section class="food sapi">
+                <h2>Ayam</h2>
+                <h3>23 menu masakan ayam enak ala homade.</h3>
+                <div class="container-food">
+                    @foreach (range(1, 5) as $i)
+                    <div class="food-tabs">
+                        <div class="wrapper-img">
+                            <img src="{{ $placeImg }}" alt="">
+                        </div>
+                        <h4>Ayam</h4>
+                    </div>
+                    @endforeach
+                </div>
+            </section>
+
+            <section class="food nasi">
+                <h2>Ayam</h2>
+                <h3>23 menu masakan ayam enak ala homade.</h3>
+                <div class="container-food">
+                    @foreach (range(1, 5) as $i)
+                    <div class="food-tabs">
+                        <div class="wrapper-img">
+                            <img src="{{ $placeImg }}" alt="">
+                        </div>
+                        <h4>Ayam</h4>
+                    </div>
+                    @endforeach
+                </div>
+            </section>
     
         </div>
 
