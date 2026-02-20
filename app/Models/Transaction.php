@@ -14,4 +14,7 @@ class Transaction extends Model
         ->with('menu_price');        
     }
 
+    public function address(){
+        return $this->hasOne(TransactionAddress::class, 'id_transaction');
+    }
 }

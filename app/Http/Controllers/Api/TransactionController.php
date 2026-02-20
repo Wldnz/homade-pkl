@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DetailTransaction;
+use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
 use Illuminate\Http\Request;
@@ -34,6 +36,7 @@ class TransactionController extends Controller
 
         // today, tomorrow, week, month, 6months?, a year
         $search = $request->query('search', '');
+        $category = $request->query('category', '');
         $sort_by = $request->query('sort_by');
         
         $status = $request->query('status');
@@ -48,6 +51,7 @@ class TransactionController extends Controller
         try {
             $transactions = $this->transactionService->byCustomer(
                 $search,
+                $category,
                 $sort_by,
                 $status,
                 $status_delivery,
@@ -66,7 +70,7 @@ class TransactionController extends Controller
             
             return $this->responseData->create(
                 'Successfully Getting Data!',
-                $transactions
+                TransactionResource::collection($transactions)
             );
             
         } catch (Exception $e) {
@@ -79,7 +83,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function detailOrder(string $id){
+    public function detailTransaction(string $id){
         try{
             $transaction = $this->transactionService->detail($id);;
 
@@ -93,7 +97,7 @@ class TransactionController extends Controller
 
             return $this->responseData->create(
                 'Berhasil menemukan transaksi!',
-                $transaction,
+                new DetailTransaction($transaction),
             );
 
         }catch(Exception $e){

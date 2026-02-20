@@ -16,6 +16,7 @@ class TransactionService
 
     public function byCustomer(
         string | null $search,
+        string | null $category,
         string | null $sort_by,
         string | null $status,
         string | null $status_delivery,
@@ -49,6 +50,11 @@ class TransactionService
             ->when($sort_by, function($query, $sort_by){
                 return $this->sort_by($query, $sort_by);
             })
+
+            ->when($category, function($query, $category){
+                return $query->where('category', $category);
+            })
+
             ->limit($limit)
             ->offset($page - 1)
             ->get();
@@ -58,7 +64,10 @@ class TransactionService
     {
         return Transaction::find($id)
             ->where('id_user', auth()->user()->id)
-            ->with('orders')
+            ->with([
+                'orders',
+                'address'
+            ])
             ->first();
     }
 

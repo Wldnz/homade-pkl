@@ -33,7 +33,7 @@ Route::name('api')->group(function() {
     Route::middleware('auth:api')->group(function (){
         Route::get('/me', [ UserController::class, 'me' ])->name('me');
         Route::get('/orders', [ TransactionController::class, 'all' ])->name('orders');
-        Route::get('/orders/{id}', [ TransactionController::class, 'detailOrder' ])->name('detail-order');
+        Route::get('/orders/{id}', [ TransactionController::class, 'detailTransaction' ])->name('detail-order');
     });
 
 });
