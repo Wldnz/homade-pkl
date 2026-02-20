@@ -11,7 +11,6 @@ use Exception;
 use Hash;
 use Illuminate\Http\Request;
 use Log;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Validator;
 
 class AuthController extends Controller
@@ -77,7 +76,6 @@ class AuthController extends Controller
     {
         $credential = Validator::make($request->all(), [
             'first_name' => 'required|min:3',
-            'last_name' => 'required|min:3',
             'email' => 'required|min:8|email',
             'password' => 'required|min:8'
         ]);
@@ -104,7 +102,7 @@ class AuthController extends Controller
         try {
             $this->userService->save([
                 'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
+                'last_name' => $request->last_name ?? '',
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);

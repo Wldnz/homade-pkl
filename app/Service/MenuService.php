@@ -76,8 +76,16 @@ class MenuService{
         return $menus;
     }
 
-    public function getCurrentMenu(){
+    public function getByDate(string $date){
+        return MenuSchedule::where('date_at', 'Like', "%$date%")
+        ->with('menu')
+        ->get();
+    }
 
+    public function usingFilter(
+        string | null $date
+    ){
+        // return 
     }
 
 }
