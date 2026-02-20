@@ -25,16 +25,17 @@ class MenuController extends Controller
 
     public function menu(Request $request)
     {
-
-        $date_at = $request->query('date_at', now());
-
+        // 
+        $search = $request->query('search'); 
+        
+        $date_at = $request->query('date_at');
         if($date_at){
             return $this->getByDate($request);
         }
 
         return $this->responseData->create(
             'Berhasil Mendapatkan Menu Berdasarkan Tanggal Sekarang',
-            $this->menuService->getByDate($date_at)
+            $this->menuService->all($search, null)
         );
 
     }
