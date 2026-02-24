@@ -4,6 +4,7 @@ use App\RefundStatus;
 use App\StatusDelivery;
 use App\StatusTransaction;
 use App\TransactionCategory;
+use App\TransactionPaymentProofStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -53,6 +54,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('transaction_payment_proofs', function (Blueprint $table){
+            $table->uuid('id')->primary();
+            $table->foreignUuid('id_transaction');
+            $table->string('url', 265);
+            $table->text('reason')->nullable();
+            $table->enum('status', TransactionPaymentProofStatus::cases())->default(TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION);
+            $table->timestamps();
+        });
+
     }
 
     /**
@@ -60,6 +70,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('transaction_payment_proofs');
         Schema::dropIfExists('transaction_address');
         Schema::dropIfExists('orders');
         Schema::dropIfExists('transactions');

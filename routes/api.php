@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,13 @@ Route::name('api')->group(function() {
     Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
 
     Route::get('/menus', [ MenuController::class, 'menu' ])->name('menu');
+    Route::get('/menus/{id}', [ MenuController::class, 'detail' ])->name('detail-menu');
+    Route::get('/menu-weekly', [ MenuController::class, 'weekly' ])->name('menu-weekly');
+    Route::get('/packages', [ MenuController::class, 'package' ])->name('packages');
+
+    Route::get('/achievements', [ ProfileController::class, 'achievements' ])->name('achievements');
+    Route::get('/partners', [ ProfileController::class, 'partners' ])->name('partners');
+    Route::get('/contact', [ ContactController::class, 'contact' ])->name('contact');
     
 
     Route::middleware('auth:api')->group(function (){

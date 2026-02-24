@@ -27,6 +27,8 @@ class SettingSeeder extends Seeder
             // "facebook_url" => ,
             // "tiktok_url" => ,
             // "x_url" => ,
+            "longitude" => fake()->longitude(),
+            "latitude" => fake()->latitude(),
             "created_at" => now(),
             "updated_at" => now(),
         ]);

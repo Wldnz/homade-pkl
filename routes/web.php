@@ -1,16 +1,20 @@
 <?php
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::name('user')->group(function () {
-    Route::get('/', [UserController::class, 'index'])->name('home');
-    Route::get('/menus', [UserController::class, 'menus'])->name('menus');
-    Route::get('/menus/{id}', [UserController::class, 'detailMenu'])->name('detail-menu');
-    Route::get('/schedule', [UserController::class, 'schedules'])->name('schedules');
-    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-    Route::get('/contact', [UserController::class, 'contact'])->name('contact');
+    Route::get('/', [HomeController::class, 'home'])->name('home');
+    Route::get('/menus', [MenuController::class, 'all'])->name('menus');
+    Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
+    Route::get('/schedule', [MenuController::class, 'weekly'])->name('schedules');
+    Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+    Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
 
     // buat autentikasi disini banh
 

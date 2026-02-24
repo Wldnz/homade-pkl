@@ -1,25 +1,27 @@
 <?php
 namespace App\Service;
 use App\Models\Menu;
-use App\Models\MenuCategory;
 use App\Models\MenuSchedule;
-use Illuminate\Support\Facades\DB;
-use function Laravel\Prompts\search;
+use Log;
+use Psr\Log\LogLevel;
 
 class MenuService
 {
 
     public function all(
         string|null $search,
-        bool|null $is_weekly,
-        bool $isActive = true,
+        int $page,
+        int $limit,
+        bool|null $isActive = true,
     ) {
+
         return Menu::with(['menu_categories', 'theme'])
             ->where('is_active', $isActive)
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
             })
-            // ->when($is_weekly, function($query, $is_weekly))
+            ->limit($limit)
+            ->offset($page - 1)
             ->get();
     }
 
@@ -35,17 +37,7 @@ class MenuService
                 'menu_categories',
                 'theme',
                 'prices',
-            ])->select([
-                    'id',
-                    'id_theme',
-                    'name',
-                    'description',
-                    'vegetable',
-                    'side_dish',
-                    'chili_sauce',
-                    'image_url',
-                    'is_active'
-                ])->first();
+            ])->first();
     }
 
     public function withThemeAndCategory(
@@ -60,15 +52,14 @@ class MenuService
     }
 
     public function getByRelevantCategoriesAndTheme(
-        array $menuCategories,
-        string $theme_id,
+        $categories_id,
         string $menu_id
     ) {
         // limit tiga aja kali ya
         // berdasarkan tema dan kategori
-        $menus = Menu::whereHas('menu_categories', fn($query) => $query->whereIn('id_category', $menuCategories))
+        $menus = Menu::whereHas('menu_categories', fn($query) => $query->whereIn('id_category', $categories_id))
             ->with([
-                'menu_categories' => fn($query) => $query->whereIn('id_category', $menuCategories)->limit(3),
+                'menu_categories' => fn($query) => $query->whereIn('id_category', $categories_id)->limit(3),
                 'theme'
             ])
             ->whereNot('id', $menu_id)->get();
@@ -78,14 +69,24 @@ class MenuService
     public function getWeeklyMenus(
         int $week = 1
     ) {
-        $startTime = str_split(now()->addDays(7 * ($week - 1)), 10)[0];
-        $endTime = str_split(now()->addDays(7 * $week), 10)[0];
-        // custom weeklynya, dihitung dari hari ini + (7 * index)
-        $menus = MenuSchedule::with([
-            'menu'
-        ])->whereBetween('date_at', [$startTime, $endTime])
-            ->get();
-        return $menus;
+        $startTime = now()->addDays(7 * ($week - 1))->format('Y-m-d');
+        $endTime = now()->addDays(7 * $week)->format('Y-m-d');
+
+        $schedules = MenuSchedule::whereBetween('date_at', [$startTime, $endTime])
+        ->with('menu')
+        ->get();
+
+        $schedules = $schedules->groupBy(function($item){
+            return \Carbon\Carbon::parse($item->date_at)->format('Y-m-d');
+        })->map(function($item, $date){
+            return [
+                'date' => $date,
+                'menus' => $item->map(function($schedule){
+                    return $schedule->menu;
+                })
+            ];
+        })->values();
+        return $schedules;
     }
 
     public function getByDate(string $date)
@@ -100,5 +101,6 @@ class MenuService
     ) {
         // return 
     }
+
 
 }

@@ -14,7 +14,7 @@ class MenuSchedule extends Model
         ->with([
             'menu_categories',
             'theme',
-            'prices',
+            // 'prices',
         ]);
     }
 

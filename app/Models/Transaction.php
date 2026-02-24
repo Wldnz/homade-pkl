@@ -17,4 +17,8 @@ class Transaction extends Model
     public function address(){
         return $this->hasOne(TransactionAddress::class, 'id_transaction');
     }
+
+    public function payment_proof() {
+        return $this->hasOne(TransactionPaymentProof::class, 'id_transaction');
+    }
 }

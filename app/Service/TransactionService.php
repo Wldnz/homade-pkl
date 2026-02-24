@@ -62,18 +62,21 @@ class TransactionService
 
     public function detail(string $id)
     {
-        return Transaction::find($id)
-            ->where('id_user', auth()->user()->id)
+        return Transaction::where([
+            'id' => $id,
+            'id_user' => auth()->user()->id,
+        ])
             ->with([
                 'orders',
-                'address'
+                'address',
+                'payment_proof'
             ])
             ->first();
     }
 
     public function create()
     {
-
+        
     }
 
     public function cancell()

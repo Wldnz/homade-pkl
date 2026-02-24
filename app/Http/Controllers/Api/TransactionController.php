@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\DetailTransaction;
+use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
@@ -97,7 +97,7 @@ class TransactionController extends Controller
 
             return $this->responseData->create(
                 'Berhasil menemukan transaksi!',
-                new DetailTransaction($transaction),
+                new DetailTransactionResource($transaction),
             );
 
         }catch(Exception $e){
