@@ -25,4 +25,9 @@ class Menu extends Model
         ->with('package')
         ->select([ 'id', 'id_menu', 'id_package', 'price' ]);
     }
+
+    public function schedule(){
+        return $this->hasMany(MenuSchedule::class, 'id_menu');
+    }
+
 }

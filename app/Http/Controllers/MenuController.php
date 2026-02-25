@@ -1,36 +1,37 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailMenuResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
 use App\ResponseData;
+use App\Service\ContactService;
 use App\Service\MenuService;
 use Exception;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Log;
-use Validator;
 
 class MenuController extends Controller
 {
-
-    private ResponseData $responseData;
+    
     private MenuService $menuService;
 
-    public function __construct()
-    {
-        $this->responseData = new ResponseData();
+    private ResponseData $responseData;
+
+    private ContactService $contactService;
+
+    public function __construct() {
         $this->menuService = new MenuService();
+        $this->responseData = new ResponseData();
+        $this->contactService = new ContactService();
     }
 
-    public function menu(Request $request)
+     public function all(Request $request)
     {
         try {
             
-            $search = $request->query('search');
+            $search = $request->query('search', '');
             $page = (int) $request->query('page', 1);
             $limit = (int) $request->query('limit', 5);
 
@@ -41,48 +42,63 @@ class MenuController extends Controller
             );
 
             if ($menus->isEmpty()) {
-                return $this->responseData->create(
+                $response = $this->responseData->create(
                     "Tidak dapat menemukan menu",
                     status_code: 404,
-                    status: "warning"
+                    status: "warning",
+                    isJson:false
                 );
+                return view('menus', compact('response'));
             }
 
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil Mendapatkan Menu - Menu',
-                MenuResource::collection($menus)
+                [
+                    'menus' => MenuResource::collection($menus),
+                    'meta' => [
+                        'search' => $search,
+                        'page' => $page,
+                        'limit' => $limit,
+                    ]
+                ],
+                isJson:false
             );
+
+            return view('menus', compact('response'));
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah terjadi kesalahan',
                 status_code: 500,
-                status: 'error'
+                status: 'error',
+                isJson:false
             );
+            return view('menus', compact('response'));
         }
     }
 
     public function detail(string $id){
-        // menu -> tema -> package -> relevantMenu
         try{
+
             $menu = $this->menuService->searchByID($id);
+
             if(!$menu){
-                return $this->responseData->create(
+                $response = $this->responseData->create(
                     'Tidak dapat menemukan menu',
                     status_code:404,
-                    status: 'warning'
+                    status: 'warning',
+                    isJson:false
                 );
+                return view('detail-menu', compact('response'));
             }
 
             $categories_id = $menu->menu_categories->map(function($category){
                 return $category->categories->id;
             });
 
-            
-
             $relevants = $this->menuService->getByRelevantCategoriesAndTheme(
 $categories_id,
-                // $menu->theme->id,
                 $id
             );
 
@@ -91,94 +107,69 @@ $categories_id,
                 'relevants' => $relevants
             ]);
 
-            return $this->responseData->create(
+            $response =  $this->responseData->create(
                 'Berhasil mendapatkan menu',
                 $menu,
+                isJson:false
             );
+
+            return view('detail-menu', compact('response'));
 
         }catch(Exception $e){
             if(str_starts_with($e->getMessage(), 'No query results for model')){
-                 return $this->responseData->create(
+                $response = $this->responseData->create(
                     'Tidak dapat menemukan menu',
                     status_code:404,
-                    status: 'warning'
+                    status: 'warning',
+                    isJson:false
                 );
+                return view('detail-menu', compact('response'));
             }
             Log::error($e->getMessage());
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah terjadi kesalahan pada server',
                 status: 'error',
-                status_code : 500
+                status_code : 500,
+                isJson:false
             );
+            return view('detail-menu', compact('response'));
         }
     }
 
-    public function weekly(Request $request) : array | JsonResponse{
+    public function weekly(Request $request) {
         try{            
             $week = (int) $request->query('week', 1);
 
             $menus = $this->menuService->getWeeklyMenus($week);
 
             if($menus->isEmpty()){
-                return $this->responseData->create(
+                $response =  $this->responseData->create(
                     'Tidak dapat menemukan menu mingguan',
                     status: 'warning',
                     status_code: 404,
+                    isJson:false
                 );
+                return view('schedule', compact('response'));
             }
 
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil mendapatkan menu mingguan',
-                MenuScheduleResource::collection($menus)
+                MenuScheduleResource::collection($menus),
+                isJson:false
             );
+
+            return view('schedule', compact('response'));
 
         }catch(Exception $e){
             Log::error($e->getMessage());
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan',
                 status:'error',
                 status_code:500,
+                isJson:false
             );
+            return view('schedule', compact('response'));
         }
     }
-
-    private function getByDate(Request $request)
-    {
-        try {
-            $date_at = $request->query('date_at', now());
-
-            if (empty($date_at)) {
-                return $this->responseData->create(
-                    'Pastikan tanggal yang dimasukkan tidak kosong',
-                    status: 'warning',
-                    status_code: 422
-                );
-            }
-
-            $menus = $this->menuService->getByDate($date_at);
-
-            if ($menus->isEmpty()) {
-                return $this->responseData->create(
-                    'Tidak dapat menemukan menu berdasarkan tanggal',
-                    status: 'warning',
-                    status_code: 404
-                );
-            }
-
-            return $this->responseData->create(
-                'Berhasil mendapatkan menu berdasarkan tanggal',
-                MenuScheduleResource::collection($menus)
-            );
-
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return $this->responseData->create(
-                'Telah terjadi kesalahan',
-                status: 'error',
-                status_code: 500,
-            );
-        }
-    }
-
 
 }

@@ -25,148 +25,171 @@ class AuthController extends Controller
         $this->userService = new UserService();
     }
 
-    public function signin(){
+    public function signin()
+    {
         return view('signin');
     }
 
-    public function signup(){
+    public function signup()
+    {
         return view('signup');
     }
 
     public function signinHandler(Request $request)
     {
+        try {
+            $credential = Validator::make($request->all(), [
+                'email' => 'required|email|min:8',
+                'password' => 'required|min:8'
+            ]);
 
-        $credential = Validator::make($request->all(), [
-            'email' => 'required|email|min:8',
-            'password' => 'required|min:8'
-        ]);
+            $data = [
+                'email' => $request->email ?? '',
+                'password' => $request->password ?? ''
+            ];
 
-        if ($credential->fails()) {
+            if ($credential->fails()) {
+                $response = $this->responseData->create(
+                    'Data Yang Dimasukkan Belum Valid Nih!',
+                    [
+                        'errors' => $credential->errors(),
+                        'input' => $data
+                    ],
+                    status: 'warning',
+                    status_code: 422,
+                    isJson: false
+                );
+                return redirect()->back()->with(compact('response'));
+            }
+
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                $response = $this->responseData->create(
+                    'Tidak dapat menemukan email',
+                    $data,
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false
+                );
+                return redirect()->back()->with(compact('response'));
+            }
+
+            if (!Hash::check($request->password, $user->password)) {
+                $response = $this->responseData->create(
+                    'Password Yang Anda Masukkan Tidak Valid!',
+                    $data,
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false
+                );
+                return redirect()->back()->with(compact('response'));
+            }
+
+            $this->userService->login($user);
+            session()->regenerate();
+            //sementatara return ke dashboard dlu ya...
+            return redirect()->to($request->query('redirect_url', '/'));
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
             $response = $this->responseData->create(
-                'Data Yang Dimasukkan Belum Valid Nih!',
-                data: $credential->errors(),
-                status: 'warning',
-                status_code: 422,
-                isJson:false
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
             );
-            return redirect()->back()->with($response);
+            return redirect()->back()->with(compact('response'));
         }
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            $response = $this->responseData->create(
-                'Tidak dapat menemukan email',
-                status: 'warning',
-                status_code: 404,
-                isJson:false
-            );
-            return redirect()->back()->with( $response);
-        }
-
-        if (!Hash::check($request->password, $user->password)) {
-            $response = $this->responseData->create(
-                'Password Yang Anda Masukkan Tidak Valid!',
-                status: 'warning',
-                status_code: 404,
-                isJson:false
-            );
-            return redirect()->back()->with($response);
-        }
-
-        Auth::login($user);
-        session()->regenerate();
-        //sementatara return ke dashboard dlu ya...
-        return redirect()->to($request->query('redirect_url', '/'));
     }
 
-     public function signupHandler(Request $request)
+    public function signupHandler(Request $request)
     {
-        $credential = Validator::make($request->all(), [
-            'first_name' => 'required|min:3',
-            'email' => 'required|min:8|email',
-            'password' => 'required|min:8'
-        ]);
-
-        if ($credential->fails()) {
-            $response = $this->responseData->create(
-                'Data yang dimasukkan belum valid!',
-                data: $credential->errors(),
-                status: 'warning',
-                status_code: 422,
-                isJson:false
-            );
-            return redirect()->back()->with($response);
-        }
-
-        $user = $this->userService->getByEmail($request->email);
-
-        if ($user) {
-            $response =  $this->responseData->create(
-                'Email sudah terdaftar!',
-                status: 'warning',
-                status_code: 403,
-                isJson:false
-            );
-            return redirect()->back()->with($response); 
-        }
-
-
-        
-
         try {
-            $this->userService->save([
+
+            $credential = Validator::make($request->all(), [
+                'first_name' => 'required|min:3',
+                'email' => 'required|min:8|email',
+                'password' => 'required|min:8'
+            ]);
+
+            $data = [
+                'first_name' => $request->first_name ?? '',
+                'last_name' => $request->last_name ?? '',
+                'email' => $request->email ?? '',
+                'password' => $request->password ?? ''
+            ];
+
+            if ($credential->fails()) {
+                $response = $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    [
+                        'errors' => $credential->errors(),
+                        'input' => $data
+                    ],
+                    status: 'warning',
+                    status_code: 422,
+                    isJson: false
+                );
+                return redirect()->back()->with(compact('response'));
+            }
+
+            $user = $this->userService->getByEmail($request->email);
+
+            if ($user) {
+                $response = $this->responseData->create(
+                    'Email sudah terdaftar!',
+                    [
+                        'errors' => $credential->errors(),
+                        'input' => $data
+                    ],
+                    status: 'warning',
+                    status_code: 403,
+                    isJson: false
+                );
+                return redirect()->back()->with(compact('response'));
+            }
+
+            $user = $this->userService->save([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name ?? '',
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
 
-            $user = $this->userService->getByEmail($request->email);
-
-            if (!$user) {
-                $response =  $this->responseData->create(
-                    'Tidak dapat menemukan email',
-                    status: 'warning',
-                    status_code: 404,
-                    isJson : false,
-                );
-                return redirect()->back()->with($response);
-            }
-
-            $response =  $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil Membuat Akun!',
                 [
                     'id' => $user->id,
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
-                    'email'=> $user->email,
+                    'email' => $user->email,
                 ],
                 status: 'success',
                 status_code: 201,
-                isJson:false,
+                isJson: false,
             );
 
-            Auth::login($user);
+            $this->userService->login($user);
             session()->regenerate();
 
             return redirect()->to($request->query('redirect_url', '/'))->with($response);
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 $e->getMessage(),
                 status: 'error',
                 status_code: 500,
             );
+            return redirect()->back()->with(compact('response'));
         }
     }
 
-    public function signout(Request $request)
+    public function signout()
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerate();
-        return redirect('/');
+        $this->userService->logout();
+        $response = $this->responseData->create(
+            'Berhasil keluar sesi!',
+        );
+        return redirect('/')->with(compact('response'));
     }
 }

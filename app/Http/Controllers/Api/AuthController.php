@@ -28,94 +28,114 @@ class AuthController extends Controller
 
     public function signin(Request $request)
     {
-
-        $credential = Validator::make($request->all(), [
-            'email' => 'required|email|min:8',
-            'password' => 'required|min:8'
-        ]);
-
-        if ($credential->fails()) {
-            return $this->responseData->create(
-                'Data Yang Dimasukkan Belum Valid Nih!',
-                data: $credential->errors(),
-                status: 'warning',
-                status_code: 422,
-            );
-        }
-
-        $user = $this->userService->getByEmail($request->email);
-
-        if (!$user) {
-            return $this->responseData->create(
-                'Tidak dapat menemukan email',
-                status: 'warning',
-                status_code: 404,
-            );
-        }
-
-        if (!Hash::check($request->password, $user->password)) {
-            return $this->responseData->create(
-                'Password Yang Anda Masukkan Tidak Valid!',
-                status: 'warning',
-                status_code: 404,
-            );
-        }
-
-        return $this->responseData->create(
-            'Berhasil Masuk!',
-            [
-                'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'token' => auth()->guard('api')->login($user),
-            ],
-        );
-    }
-    public function signup(Request $request)
-    {
-        $credential = Validator::make($request->all(), [
-            'first_name' => 'required|min:3',
-            'email' => 'required|min:8|email',
-            'password' => 'required|min:8'
-        ]);
-
-        if ($credential->fails()) {
-            return $this->responseData->create(
-                'Data yang dimasukkan belum valid!',
-                data: $credential->errors(),
-                status: 'warning',
-                status_code: 422,
-            );
-        }
-
-        $user = $this->userService->getByEmail($request->email);
-
-        if ($user) {
-            return $this->responseData->create(
-                'Email sudah terdaftar!',
-                status: 'warning',
-                status_code: 403
-            );
-        }
-
         try {
-            $this->userService->save([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name ?? '',
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
+            $credential = Validator::make($request->all(), [
+                'email' => 'required|email|min:8',
+                'password' => 'required|min:8'
             ]);
-            // gini kah wkwk?
+
+            $data = [
+                'email' => $request->email ?? '',
+                'password' => $request->password ?? ''
+            ];
+
+            if ($credential->fails()) {
+                return $this->responseData->create(
+                    'Data Yang Dimasukkan Belum Valid Nih!',
+                    [
+                        'errors' => $credential->errors(),
+                        'input' => $data
+                    ],
+                    status: 'warning',
+                    status_code: 422,
+                );
+            }
+
             $user = $this->userService->getByEmail($request->email);
 
             if (!$user) {
                 return $this->responseData->create(
                     'Tidak dapat menemukan email',
+                    $data,
                     status: 'warning',
                     status_code: 404,
                 );
             }
+
+            if (!Hash::check($request->password, $user->password)) {
+                return $this->responseData->create(
+                    'Password Yang Anda Masukkan Tidak Valid!',
+                    $data,
+                    status: 'warning',
+                    status_code: 404,
+                );
+            }
+
+            return $this->responseData->create(
+                'Berhasil Masuk!',
+                [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'token' => auth()->guard('api')->login($user),
+                ],
+            );
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500
+            );
+        }
+    }
+    public function signup(Request $request)
+    {
+        try {
+
+            $credential = Validator::make($request->all(), [
+                'first_name' => 'required|min:3',
+                'email' => 'required|min:8|email',
+                'password' => 'required|min:8'
+            ]);
+
+            $data = [
+                'first_name' => $request->first_name ?? '',
+                'last_name' => $request->last_name ?? '',
+                'email' => $request->email ?? '',
+                'password' => $request->password ?? ''
+            ];
+
+            if ($credential->fails()) {
+                return $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    [
+                        'errors' => $credential->errors(),
+                        'input' => $data
+                    ],
+                    status: 'warning',
+                    status_code: 422,
+                );
+            }
+
+            $user = $this->userService->getByEmail($request->email);
+
+            if ($user) {
+                return $this->responseData->create(
+                    'Email sudah terdaftar!',
+                    $data,
+                    status: 'warning',
+                    status_code: 403
+                );
+            }
+
+            $user = $this->userService->save([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name ?? '',
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
 
             return $this->responseData->create(
                 'Berhasil Membuat Akun!',
@@ -140,13 +160,11 @@ class AuthController extends Controller
         }
     }
 
-    public function signout(){
-        auth::logout();
+    public function signout()
+    {
+        $this->userService->logout();
         return $this->responseData->create(
             'Successfully Sign out!!',
         );
     }
-
-    // public function
-
 }

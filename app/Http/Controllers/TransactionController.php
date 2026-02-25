@@ -1,30 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
+use Exception;
 use Illuminate\Http\Request;
 use Log;
-use Exception;
 
 class TransactionController extends Controller
 {
-
+ 
     private TransactionService $transactionService;
-
     private ResponseData $responseData;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->transactionService = new TransactionService();
         $this->responseData = new ResponseData();
     }
 
-    public function all(Request $request)
+        public function all(Request $request)
     {
 
         // delivery_at
@@ -46,7 +43,6 @@ class TransactionController extends Controller
         $limit = $request->query('limit', 3);
         
         $delivery_at = $request->query('delivery_at');
-
 
         try {
             $transactions = $this->transactionService->byCustomer(
@@ -108,10 +104,6 @@ class TransactionController extends Controller
                 status_code:500
             );
         }
-    }
-
-    public function create(){
-        // bingung....
     }
 
 }

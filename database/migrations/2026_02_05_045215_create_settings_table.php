@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('x_url', 265)->nullable();
             $table->time("open_hours_at");
             $table->time("close_hours_at");
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
             $table->timestamps();
         });
     }

@@ -6,12 +6,15 @@ use App\Models\MenuPrice;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\TransactionAddress;
+use App\Models\TransactionPaymentProof;
+use App\Models\TransactionProof;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\RefundStatus;
 use App\StatusDelivery;
 use App\StatusTransaction;
 use App\TransactionCategory;
+use App\TransactionPaymentProofStatus;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -33,6 +36,9 @@ class TransactionSeeder extends Seeder
                     'Bang ini jangan pake nasi ya!',
                     'tolong sambelnya yang sasetan aja ya bang',
                     'ini makanannya jangan di kasih sayuran ya bang!'
+                ],
+                'payment' => [
+                    'status' => TransactionPaymentProofStatus::ACCEPTED,
                 ]
             ],
             [
@@ -41,6 +47,9 @@ class TransactionSeeder extends Seeder
                 'delivery_at' => now()->addDays(1),
                 'notes' => [
                     'Bang ini jangan pake nasi ya!',
+                ],
+                'payment' => [
+                    'status' => TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION,
                 ]
             ],
             [
@@ -49,6 +58,9 @@ class TransactionSeeder extends Seeder
                 'delivery_at' => now()->addDays(1),
                 'notes' => [
                     'Bang ini jangan pake ikan ya!',
+                ],
+                'payment' => [
+                    'status' => TransactionPaymentProofStatus::ACCEPTED,
                 ]
             ],
             [
@@ -60,9 +72,9 @@ class TransactionSeeder extends Seeder
                 'delivery_at' => now()->addDays(1),
                 'notes' => [
                     'Bang ini jangan pake sambel ya!',
-                ]
+                ],
             ],
-             [
+            [
                 'status' => StatusTransaction::CANCELLED_BY_CUSTOMER,
                 'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
                 'refund_status' => RefundStatus::PENDING,
@@ -77,11 +89,12 @@ class TransactionSeeder extends Seeder
 
         $users = User::where('role', 'customer')->get();
         $shippingCost = 5000;
-        foreach($users as $user){
-            foreach($transactions as $transaction){
-                $subtotal = 0;            
+
+        foreach ($users as $user) {
+            foreach ($transactions as $transaction) {
+                $subtotal = 0;
                 $orders = [];
-                foreach($transaction['notes'] as $note){
+                foreach ($transaction['notes'] as $note) {
                     $menuPrice = MenuPrice::inRandomOrder()->first();
                     $quantity = random_int(5, 120);
                     array_push($orders, [
@@ -93,7 +106,7 @@ class TransactionSeeder extends Seeder
                     $subtotal += $menuPrice->price * $quantity;
                 }
 
-                $final_shipping_cost = $transaction['shipping_cost'] ?? $shippingCost; 
+                $final_shipping_cost = $transaction['shipping_cost'] ?? $shippingCost;
 
                 $createdTransaction = Transaction::create([
                     'id_user' => $user->id,
@@ -110,7 +123,7 @@ class TransactionSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
 
-                foreach($orders as $order){
+                foreach ($orders as $order) {
                     Order::create([
                         'id_transaction' => $createdTransaction->id,
                         'id_menu_price' => $order['id_menu_price'],
@@ -122,7 +135,7 @@ class TransactionSeeder extends Seeder
                     ]);
                 }
 
-                $address = UserAddress::where('id_user',$user->id)->inRandomOrder()->first();
+                $address = UserAddress::where('id_user', $user->id)->inRandomOrder()->first();
 
                 TransactionAddress::create([
                     'id_transaction' => $createdTransaction->id,
@@ -136,6 +149,17 @@ class TransactionSeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                if (isset($transaction['payment'])) {
+                    TransactionPaymentProof::create([
+                        'id_transaction' => $createdTransaction->id,
+                        'url' => fake()->imageUrl(),
+                        'reason' => fake()->text(50),
+                        'status' => $transaction['payment']['status'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
 
             }
 

@@ -15,25 +15,32 @@ class MenuScheduleResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->menu->id,
-            'name' => $this->menu->name,
-            'description' => $this->menu->description,
-            'vegetable' => $this->menu->vegetable,
-            'side_dish' => $this->menu->side_dish,
-            'chili_sauce' => $this->menu->chili_sauce,
-            'image_url' => $this->menu->image_url,
-            'categories' => $this->menu->menu_categories->map(function ($category) {
-                return $category->categories->name;
-            }),
-            'theme' => $this->menu->theme->name,
-            'package' => $this->menu->prices->map(function ($price) {
+            'date' => $this['date'],
+            'menus' => $this['menus']->map(function ($menu) {
                 return [
-                    'id' => $price->package->id,
-                    'name' => $price->package->name,
-                    'description' => $price->package->description,
-                    'price' => $price->price,
-                    'minimum_order' => $price->package->minimum_order,
-                    'image_url' => $price->package->image_url,
+                    'id' => $menu->id,
+                    'theme' => $menu->theme->name,
+                    'name' => $menu->name,
+                    'description' => $menu->description,
+                    'image_url' => $menu->image_url,
+                    'addon' => [
+                        'vegetable' => $menu->vegetable,
+                        'side_dish' => $menu->side_dish,
+                        'sauce' => $menu->chili_sauce,
+                    ],
+                    'categories' => $menu->menu_categories->map(function ($category) {
+                        return $category->categories->name;
+                    }),
+                    // 'packages' => $this->menu->prices->map(function ($price) {
+                    //     return [
+                    //         'id' => $price->id,
+                    //         'name' => $price->package->name,
+                    //         'description' => $price->package->description,
+                    //         'price' => $price->price,
+                    //         'minimum_order' => $price->package->minimum_order,
+                    //         'image_url' => $price->package->image_url,
+                    //     ];
+                    // })
                 ];
             })
         ];
