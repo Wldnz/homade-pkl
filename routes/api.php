@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('auth:sanctum');
 
 
-Route::name('api')->group(function() {
-    
-    Route::get('/test', function(){
+Route::name('api')->group(function () {
+
+    Route::get('/test', function () {
         return response()->json(['message' => 'hello']);
     });
 
@@ -29,24 +29,27 @@ Route::name('api')->group(function() {
 
     // Route::get('/additional', [ DocumentationController::class, 'additional' ])->name('additional');
 
-    
-    Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
-    Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
 
-    Route::get('/menus', [ MenuController::class, 'menu' ])->name('menu');
-    Route::get('/menus/{id}', [ MenuController::class, 'detail' ])->name('detail-menu');
-    Route::get('/menu-weekly', [ MenuController::class, 'weekly' ])->name('menu-weekly');
-    Route::get('/packages', [ MenuController::class, 'package' ])->name('packages');
+    Route::post('/signin', [AuthController::class, 'signin'])->name('signin');
+    Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 
-    Route::get('/achievements', [ ProfileController::class, 'achievements' ])->name('achievements');
-    Route::get('/partners', [ ProfileController::class, 'partners' ])->name('partners');
-    Route::get('/contact', [ ContactController::class, 'contact' ])->name('contact');
-    
+    Route::get('/menus', [MenuController::class, 'menu'])->name('menu');
+    Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
+    Route::get('/menu-weekly', [MenuController::class, 'weekly'])->name('menu-weekly');
+    Route::get('/packages', [MenuController::class, 'package'])->name('packages');
 
-    Route::middleware('auth:api')->group(function (){
-        Route::get('/me', [ UserController::class, 'me' ])->name('me');
-        Route::get('/orders', [ TransactionController::class, 'all' ])->name('orders');
-        Route::get('/orders/{id}', [ TransactionController::class, 'detailTransaction' ])->name('detail-order');
+    Route::get('/achievements', [ProfileController::class, 'achievements'])->name('achievements');
+    Route::get('/partners', [ProfileController::class, 'partners'])->name('partners');
+    Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
+
+
+    Route::middleware('auth:api')->group(function () {
+        Route::prefix('me')->group(function () {
+            Route::get('/me', [UserController::class, 'me'])->name('me');
+            Route::get('/orders', [TransactionController::class, 'all'])->name('orders');
+            Route::get('/orders/{id}', [TransactionController::class, 'detailTransaction'])->name('detail-order');
+        });
+        Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
     });
 
 });
