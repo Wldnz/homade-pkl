@@ -7,6 +7,7 @@ use App\ResponseData;
 use App\Service\AchievementService;
 use App\Service\PartnerService;
 use Exception;
+use Illuminate\Http\Request;
 use Log;
 
 
@@ -49,10 +50,11 @@ class ProfileController extends Controller
         }
     }
 
-    public function partners(){
+    public function partners(Request $request){
         try{
             // btw blm ada limit untuk saat ini, jadi semua data ke ambil
-            $partners = $this->partnerService->all();
+            $limit = $request->query('limit', 3);
+            $partners = $this->partnerService->all(limit: $limit);
 
             if($partners->isEmpty()){
                 return $this->responseData->create(

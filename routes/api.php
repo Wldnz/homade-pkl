@@ -40,7 +40,14 @@ Route::name('api')->group(function () {
 
     Route::get('/achievements', [ProfileController::class, 'achievements'])->name('achievements');
     Route::get('/partners', [ProfileController::class, 'partners'])->name('partners');
-    Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
+    
+    Route::prefix('contact')->group(function(){
+        Route::get('/', [ContactController::class, 'contact'])->name('contact');
+        Route::get('/full', [ContactController::class, 'full'])->name('contact-full');
+        Route::get('/social-media', [ContactController::class, 'socialMedia'])->name('social-media');
+        Route::get('/address', [ContactController::class, 'address'])->name('address');
+        Route::get('/operational', [ContactController::class, 'operational'])->name('operational');
+    });
 
 
     Route::middleware('auth:api')->group(function () {
