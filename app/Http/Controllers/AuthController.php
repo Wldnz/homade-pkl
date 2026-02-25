@@ -96,6 +96,7 @@ class AuthController extends Controller
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
                 status_code: 500,
+                isJson: false
             );
             return redirect()->back()->with(compact('response'));
         }
@@ -179,6 +180,7 @@ class AuthController extends Controller
                 $e->getMessage(),
                 status: 'error',
                 status_code: 500,
+                isJson: false
             );
             return redirect()->back()->with(compact('response'));
         }
@@ -189,6 +191,7 @@ class AuthController extends Controller
         $this->userService->logout();
         $response = $this->responseData->create(
             'Berhasil keluar sesi!',
+            isJson: false
         );
         return redirect('/')->with(compact('response'));
     }

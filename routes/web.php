@@ -9,7 +9,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::name('user')->group(function () {
+Route::name('user.')->group(function () {
     Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::get('/menus', [MenuController::class, 'all'])->name('menus');
     Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
@@ -39,7 +39,7 @@ Route::name('user')->group(function () {
 });
 
 // tambahin role juga untuk middlewwarenya
-Route::name('admin')->prefix('admin')->group(function () {
+Route::name('admin.')->prefix('admin')->group(function () {
 
     // dashboar, kelola menu, jdwal dan pemesanan
 
