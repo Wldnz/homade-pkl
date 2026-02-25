@@ -11,7 +11,7 @@ class UserService
 
     public function currentUser(
     ) {
-        return auth()->user()
+        return User::where('id', auth()->user()->id)
             ->with([
                 'address',
                 'orders' => fn($orders) => $orders->limit(3)

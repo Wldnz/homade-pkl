@@ -76,7 +76,7 @@ License: For each use you must have a valid license purchased only from above li
 						<!--begin::Body-->
 						<div class="py-20">
 							<!--begin::Form-->
-							<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="/signin">
+							<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('user.signin') }}" method="POST">
                             @csrf
 								<!--begin::Body-->
 								<div class="card-body">

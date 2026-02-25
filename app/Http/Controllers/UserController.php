@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\MeResources;
 use App\ResponseData;
 use App\Service\UserService;
+use Exception;
+use Log;
 
 
 class UserController extends Controller
@@ -17,16 +20,26 @@ class UserController extends Controller
         $this->userService = new UserService();
     }
 
-    public function me(){
-        // data with address
-        $response = $this->responseData->create(
-            'Berhasil Mendapatkan Data Akun',
-            [
-                'user' => $this->userService->currentUser(),
-            ]
-        );
-        return $response;
-        // return view('me', $response);
+    public function me()
+    {
+        try {
+            $user = $this->userService->currentUser();
+            $response = $this->responseData->create(
+                'Berhasil Mendapatkan Data Akun',
+                new MeResources($user),
+                isJson:false
+            );
+            return view('profile.me', compact('response'));
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $resonse = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status:'error',
+                status_code:500,
+                isJson:false
+            );
+            return view('profile.me', compact('response'));
+        }
     }
 
 

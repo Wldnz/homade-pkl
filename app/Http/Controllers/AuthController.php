@@ -86,6 +86,8 @@ class AuthController extends Controller
                 return redirect()->back()->with(compact('response'));
             }
 
+            Log::alert('login sebagai' . $user->first_name);
+
             $this->userService->login($user);
             session()->regenerate();
             //sementatara return ke dashboard dlu ya...
