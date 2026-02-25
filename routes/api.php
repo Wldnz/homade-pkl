@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -29,11 +30,14 @@ Route::name('api')->group(function() {
     
     Route::post('/signin', [ AuthController::class, 'signin' ])->name('signin');
     Route::post('/signup', [ AuthController::class, 'signup' ])->name('signup');
+
+    Route::get('/menus', [ MenuController::class, 'menu' ])->name('menu');
     
+
     Route::middleware('auth:api')->group(function (){
         Route::get('/me', [ UserController::class, 'me' ])->name('me');
         Route::get('/orders', [ TransactionController::class, 'all' ])->name('orders');
-        Route::get('/orders/{id}', [ TransactionController::class, 'detailOrder' ])->name('detail-order');
+        Route::get('/orders/{id}', [ TransactionController::class, 'detailTransaction' ])->name('detail-order');
     });
 
 });

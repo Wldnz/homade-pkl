@@ -22,9 +22,7 @@ class Menu extends Model
 
     public function prices(){
         return $this->hasMany(MenuPrice::class, 'id_menu')
-        ->with('packages')
+        ->with('package')
         ->select([ 'id', 'id_menu', 'id_package', 'price' ]);
     }
-
-
 }

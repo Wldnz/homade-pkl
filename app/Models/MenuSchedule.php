@@ -10,7 +10,12 @@ class MenuSchedule extends Model
     use HasUuids;
 
     public function menu(){
-        return $this->belongsTo(Menu::class, 'id_menu');
+        return $this->belongsTo(Menu::class, 'id_menu')
+        ->with([
+            'menu_categories',
+            'theme',
+            'prices',
+        ]);
     }
 
 }
