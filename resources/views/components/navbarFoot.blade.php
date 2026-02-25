@@ -16,7 +16,7 @@
 
     <div class="container-whatsapp">
         <h2>Whatsapp Customer Care</h2>
-        <h1><img src="{{ $placeImg }}" alt=""> 0857-1180-1336</h1>
+        <h1><img src="icons/chat-bubble.svg" alt=""> 0857-1180-1336</h1>
         <h3>(Senin - Jumat 9:00 - 17:00 WIB)</h3>
     </div>
 

@@ -14,14 +14,14 @@
                 <div class="left">
                     <h2>Makanan rumahan, sehat, enak, bersih.</h2>
                     <div class="gap1"></div>
-                    <h1>Catering Harian</h1>
+                    <h1 class="text-yellow">Catering Harian</h1>
                     <h1>Tanpa Langganan</h1>
                     <div class="gap2"></div>
-                    <button>Lihat Menu <img src="icons/arrow-right.svg" alt="arrow image"></button>
+                    <a href="/menus">Lihat Menu <img src="icons/arrow-right-c.svg" alt="arrow image"></a>
                 </div>
     
                 <div class="right">
-    
+                    <img src="img/food.png" alt="">
                 </div>
             </section>
     
@@ -29,7 +29,7 @@
     
                 <div class="feature-tab">
                     <div class="wrapper-img">
-                        <img src="{{ $placeImg }}" alt="">
+                        <img src="icons/calendar.svg" alt="">
                     </div>
     
                     <h2>Tanpa Berlangganan</h2>
@@ -41,19 +41,19 @@
     
                 <div class="feature-tab">
                     <div class="wrapper-img">
-                        <img src="{{ $placeImg }}" alt="">
+                        <img src="icons/book.svg" alt="">
                     </div>
-                    <h2>Tanpa Berlangganan</h2>
-                    <h3>Tanpa kontrak langganan, bisa pesan sesuai kebutuhan.</h3>
+                    <h2>Bebas Pilih Menu</h2>
+                    <h3>Terdapat lebih dari 30 pilihan menu, bebas memilih menu.</h3>
                     <h4>syarat & ketentuan berlaku</h4>
                 </div>
     
                 <div class="feature-tab">
                     <div class="wrapper-img">
-                        <img src="{{ $placeImg }}" alt="">
+                        <img src="icons/clock.svg" alt="">
                     </div>
-                    <h2>Tanpa Berlangganan</h2>
-                    <h3>Tanpa kontrak langganan, bisa pesan sesuai kebutuhan.</h3>
+                    <h2>Bebas Pilih Waktu</h2>
+                    <h3>Waktu pengantaran fleksibel antara jam 10:00-18:00 WIB.</h3>
                     <h4>syarat & ketentuan berlaku</h4>
                 </div>
     
@@ -66,33 +66,33 @@
     
                 <div class="container-menu">
     
-                    <div class="menu-tabs">
+                    <a href="/" class="menu-tabs">
                         <div class="wrapper-img">
                             <img src="{{ $placeImg }}" alt="">
                         </div>
     
                         <h3>Ayam Geprek</h3>
-                    </div>
+                    </a>
     
-                    <div class="menu-tabs">
+                    <a href="/" class="menu-tabs">
                         <div class="wrapper-img">
                             <img src="{{ $placeImg }}" alt="">
                         </div>
     
                         <h3>Ayam Geprek</h3>
-                    </div>
+                    </a>
     
-                    <div class="menu-tabs">
+                    <a href="/" class="menu-tabs">
                         <div class="wrapper-img">
                             <img src="{{ $placeImg }}" alt="">
                         </div>
     
                         <h3>Ayam Geprek</h3>
-                    </div>
+                    </a>
                 
                 </div>
     
-                <button>Lihat Menu Lainnya</button>
+                <a class="btn" href="/menus">Lihat Menu Lainnya <img src="icons/arrow-right-c.svg"></a>
     
             </section>
     
@@ -100,14 +100,15 @@
                 <h1>Kemasan Paket Menu Homade</h1>
     
                 <div class="wrapper-img">
-                    <img src="{{ $placeImg }}" alt="">
+                    <img src="img/packaging.png" alt="">
+                    <h6>*Lauk pendamping dapat berubah sewaktu waktu</h6>
                 </div>
     
                 <div class="container-pack">
     
                     <div class="pack">
                         <div class="wrapper-img">
-                            <img src="{{ $placeImg }}" alt="">
+                            <img src="img/bento.png" alt="">
                         </div>
     
                         <h2>Bento Mealbox</h2>
@@ -117,28 +118,28 @@
     
                     <div class="pack">
                         <div class="wrapper-img">
-                            <img src="{{ $placeImg }}" alt="">
+                            <img src="img/cardboard.png" alt="">
                         </div>
     
-                        <h2>Bento Mealbox</h2>
+                        <h2>Valuebox</h2>
     
-                        <h3>paket normal terdiri dari lauk utama dan lauk pendamping lengkap.</h3>
+                        <h3>Paket hemat terdiri dari  laukutama dan laukpendamping terbatas (optional</h3>
                     </div>
     
                     <div class="pack">
                         <div class="wrapper-img">
-                            <img src="{{ $placeImg }}" alt="">
+                            <img src="img/plastic.png" alt="">
                         </div>
     
-                        <h2>Bento Mealbox</h2>
+                        <h2>Family Pack</h2>
     
-                        <h3>paket normal terdiri dari lauk utama dan lauk pendamping lengkap.</h3>
+                        <h3>Paket keluarga terdiri dari lauk utama dan sayuran pendamping (tanpa nasi), porsi untuk 4 orang.</h3>
                     </div>
     
                 </div>
     
                 <div class="wrapper-button">
-                    <button>Lihat Menu Selengkapnya <img src="icons/arrow-right.svg" alt=""></button>
+                    <button>Lihat Menu Selengkapnya <img src="icons/arrow-right-c.svg" alt=""></button>
                 </div>
             </section>
     
@@ -148,79 +149,82 @@
                 <div class="container-category">
     
                     <button class="category-tabs">
-                        <img src="{{ $placeImg }}" alt="">
-                        <h2>Ayam (40)</h2>
+                        <img src="img/chicken.png" alt="">
+                        <h2>Ayam (23)</h2>
                     </button>
                     
                     <button class="category-tabs">
-                        <img src="{{ $placeImg }}" alt="">
-                        <h2>Ayam (40)</h2>
+                        <img src="img/fish.png" alt="">
+                        <h2>Ikan & Seafood (21)</h2>
                     </button>
     
                     <button class="category-tabs">
-                        <img src="{{ $placeImg }}" alt="">
-                        <h2>Ayam (40)</h2>
+                        <img src="img/rice.png" alt="">
+                        <h2>Nasi (7)</h2>
                     </button>
     
                     <button class="category-tabs">
-                        <img src="{{ $placeImg }}" alt="">
-                        <h2>Ayam (40)</h2>
+                        <img src="img/beef.png" alt="">
+                        <h2>Sapi & Kambing (4)</h2>
                     </button>
     
                 </div>
             </section>
     
             <section class="sponsor">
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-                
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-                
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
-                </div>
-    
-                <div class="sponsor-tabs">
-                    <img src="{{ $placeImg }}" alt="">
+                <div class="wrapper-sponsor">
+
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+                    
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+                    
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
+        
+                    <div class="sponsor-tabs">
+                        <img src="{{ $placeImg }}" alt="">
+                    </div>
                 </div>
     
             </section>

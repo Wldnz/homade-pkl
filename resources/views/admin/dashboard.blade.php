@@ -16,8 +16,6 @@ License: For each use you must have a valid license purchased only from above li
 		@vite([
 			'sass/app.scss', 
 			'sass/metronic/style.scss', 
-			'resources/js/app.js', 
-			'resources/js/metronic/scripts.js'
 		])
 		<meta charset="utf-8" />
 		<meta name="description" content="The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -41,6 +39,7 @@ License: For each use you must have a valid license purchased only from above li
 		<link href="/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
 		<link href="/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
+		@vite(['sass/app.scss'])
 		<script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
 	</head>
 	<!--end::Head-->
@@ -197,7 +196,7 @@ License: For each use you must have a valid license purchased only from above li
 
 						<!--begin::Footer-->
 						<div class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6" id="kt_app_sidebar_footer">
-							<a href="signin" class="btn btn-flex flex-center btn-primary overflow-hidden text-nowrap px-0 h-40px w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="Sign Out" style="background-color: #ce1a27;">
+							<a href="signin" class="btn btn-primary-homade btn-flex flex-center overflow-hidden text-nowrap px-0 h-40px w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click">
 								<span class="text-white btn-label">Sign Out</span>
 							</a>
 						</div>
@@ -228,7 +227,7 @@ License: For each use you must have a valid license purchased only from above li
 									<!--begin::Actions-->
 									<div class="d-flex align-items-center gap-2 gap-lg-3">
 										<!--begin::Primary button-->
-										<a href="#" class="btn btn-sm fw-bold btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_new_target" style="background-color: #ce1a27;">Tambah Menu Baru</a>
+										<a href="#" class="btn btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#kt_modal_new_target">Tambah Menu Baru</a>
 										<!--end::Primary button-->
 									</div>
 									<!--end::Actions-->

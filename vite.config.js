@@ -7,10 +7,14 @@ export default defineConfig({
         laravel({
             input: [
                 'sass/app.scss', 
-                'sass/metronic/style.scss',
+                'sass/metronic/style.scss', 
                 'resources/js/app.js',
             ],
-            refresh: true,
+            refresh: [
+                'sass/**',
+                'resources/views/**',
+                'resources/js/**',
+            ],
         }),
         tailwindcss(),
     ],
