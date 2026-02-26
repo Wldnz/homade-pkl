@@ -9,8 +9,6 @@
         <a href="/" class="{{ $page === "menu" ? "active" : "" }}">Menu</a>
         <a href="/" class="{{ $page === "schedule" ? "active" : "" }}">Jadwal</a>
         <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Profil</a>
-        <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Faq</a>
-        <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Blog</a>
         <a href="/" class="{{ $page === "wildan" ? "active" : "" }}">Kontak</a>
     </div>
 
