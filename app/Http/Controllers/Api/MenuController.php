@@ -31,16 +31,18 @@ class MenuController extends Controller
         try {
             
             $search = $request->query('search');
+            $theme = $request->query('theme', '');
             $page = (int) $request->query('page', 1);
             $limit = (int) $request->query('limit', 5);
 
             $menus = $this->menuService->all(
                 $search,
+                $theme,
                 $page,
                 $limit,
             );
 
-            if ($menus->isEmpty()) {
+            if (empty($menus)) {
                 return $this->responseData->create(
                     "Tidak dapat menemukan menu",
                     status_code: 404,

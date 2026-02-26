@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Models\User;
+use App\Models\UserAddress;
 use Auth;
 use Exception;
 use Log;
@@ -11,12 +12,7 @@ class UserService
 
     public function currentUser(
     ) {
-        return User::where('id', auth()->user()->id)
-            ->with([
-                'address',
-                'orders' => fn($orders) => $orders->limit(3)
-            ])
-            ->first();
+        return auth()->user();
     }
 
     public function getByEmail(
@@ -28,11 +24,6 @@ class UserService
     public function save(array $data)
     {
         return User::create($data);
-        // try {
-        // } catch (Exception $e) {
-        //     Log::error($e->getMessage());
-        //     throw new Exception('Gagal Menyimpan user ke dalam database!');
-        // }
     }
 
     public function login(User $user, $isRemember = true)

@@ -10,19 +10,34 @@ class MenuService
 
     public function all(
         string|null $search,
+        string|null $theme,
         int $page,
         int $limit,
         bool|null $isActive = true,
     ) {
 
-        return Menu::with(['menu_categories', 'theme'])
-            ->where('is_active', $isActive)
+        $menus = Menu::with(['menu_categories', 'theme'])
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
-            })
+            })->where('is_active', $isActive)
             ->limit($limit)
             ->offset($page - 1)
             ->get();
+
+        $new_menus = [];
+
+        if ($theme) {
+            foreach ($menus as $menu) {
+                if ($menu->theme->name === $theme) {
+                    array_push($new_menus, $menu);
+                }
+            }
+        } else {
+            $new_menus = $menus;
+        }
+
+        return $new_menus;
+
     }
 
     public function getWeeklyPopuler()
@@ -73,15 +88,15 @@ class MenuService
         $endTime = now()->addDays(7 * $week)->format('Y-m-d');
 
         $schedules = MenuSchedule::whereBetween('date_at', [$startTime, $endTime])
-        ->with('menu')
-        ->get();
+            ->with('menu')
+            ->get();
 
-        $schedules = $schedules->groupBy(function($item){
+        $schedules = $schedules->groupBy(function ($item) {
             return \Carbon\Carbon::parse($item->date_at)->format('Y-m-d');
-        })->map(function($item, $date){
+        })->map(function ($item, $date) {
             return [
                 'date' => $date,
-                'menus' => $item->map(function($schedule){
+                'menus' => $item->map(function ($schedule) {
                     return $schedule->menu;
                 })
             ];
