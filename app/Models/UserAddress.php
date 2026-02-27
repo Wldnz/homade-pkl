@@ -10,4 +10,15 @@ class UserAddress extends Model
     use HasUuids;
 
     protected $table = 'user_address';
+
+    protected $fillable = [
+        'id_user',
+        'received_name',
+        'phone',
+        'label',
+        'address',
+        'note',
+        'longitude',
+        'latitude'
+    ];
 }

@@ -12,36 +12,28 @@ use Log;
 
 class TransactionController extends Controller
 {
- 
+
     private TransactionService $transactionService;
     private ResponseData $responseData;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->transactionService = new TransactionService();
         $this->responseData = new ResponseData();
     }
 
-        public function all(Request $request)
+    public function orders(Request $request)
     {
-
-        // delivery_at
-        // filter
-        // status
-        // status_delivery
-        // search engine
-        // limit
-
-        // today, tomorrow, week, month, 6months?, a year
         $search = $request->query('search', '');
         $category = $request->query('category', '');
         $sort_by = $request->query('sort_by');
-        
+
         $status = $request->query('status');
         $status_delivery = $request->query('status_delivery');
-        
+
         $page = $request->query('page', 1);
         $limit = $request->query('limit', 3);
-        
+
         $delivery_at = $request->query('delivery_at');
 
         try {
@@ -55,54 +47,69 @@ class TransactionController extends Controller
                 $limit,
                 $delivery_at
             );
-            
-            if(count($transactions) == 0){
-                return $this->responseData->create(
+
+            if (count($transactions) == 0) {
+                $response =  $this->responseData->create(
                     'Tidak dapat menemukan transaksi atau kamu belum memiliki transaksi!',
                     status: 'warning',
-                    status_code: 404
+                    status_code: 404,
+                    isJson:false
                 );
+                return view('profile.orders', compact('response'));
             }
-            
-            return $this->responseData->create(
+
+            $response = $this->responseData->create(
                 'Successfully Getting Data!',
-                TransactionResource::collection($transactions)
+                TransactionResource::collection($transactions),
+                isJson:false
             );
-            
+
+            return view('profile.orders', compact('response'));
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
-             return $this->responseData->create(
+            $response= $this->responseData->create(
                 message: 'Kesalahan Server',
                 status: 'error',
                 status_code: 500,
+                isJson:false
             );
+            return view('profile.orders', compact('response'));
         }
     }
 
-    public function detailTransaction(string $id){
-        try{
-            $transaction = $this->transactionService->detail($id);;
+    public function detail(string $id)
+    {
+        try {
+            $transaction = $this->transactionService->detail($id);
 
-            if(!$transaction){
-                return $this->responseData->create(
+            if (!$transaction) {
+                $ressponse = $this->responseData->create(
                     'Tidak dapat menemukan transaksi',
-                    status:'warning',
-                    status_code: 404
+                    status: 'warning',
+                    status_code: 404,
+                    isJson:false
                 );
+                return view('profile.detail-order', compact('response'));
             }
 
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil menemukan transaksi!',
                 new DetailTransactionResource($transaction),
+                isJson:false
             );
 
-        }catch(Exception $e){
+            return view('profile.detail-order', compact('response'));
+
+        } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Server',
-                status:'error',
-                status_code:500
+                status: 'error',
+                status_code: 500,
+                isJson:false
             );
+            return view('profile.detail-order', compact('response'));
         }
     }
 

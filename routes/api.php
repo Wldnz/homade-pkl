@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,12 +41,28 @@ Route::name('api')->group(function () {
 
     Route::get('/achievements', [ProfileController::class, 'achievements'])->name('achievements');
     Route::get('/partners', [ProfileController::class, 'partners'])->name('partners');
-    Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
+    
+    Route::prefix('contact')->group(function(){
+        Route::get('/', [ContactController::class, 'contact'])->name('contact');
+        Route::get('/full', [ContactController::class, 'full'])->name('contact-full');
+        Route::get('/social-media', [ContactController::class, 'socialMedia'])->name('social-media');
+        Route::get('/address', [ContactController::class, 'address'])->name('address');
+        Route::get('/operational', [ContactController::class, 'operational'])->name('operational');
+    });
 
 
     Route::middleware('auth:api')->group(function () {
         Route::prefix('me')->group(function () {
-            Route::get('/me', [UserController::class, 'me'])->name('me');
+            Route::get('/', [UserController::class, 'me'])->name('me');
+            Route::put('/', [UserController::class, 'edit'])->name('edit-me');
+
+            // user address
+            Route::get('/address', [UserAddressController::class, 'address'])->name('user-address');
+            Route::get('/address/{id}', [UserAddressController::class, 'detail'])->name('detail-user-address');
+            Route::post('/address', [UserAddressController::class, 'store'])->name('add-user-address');
+            Route::put('/address/{id}', [UserAddressController::class, 'edit'])->name('edit-user-address');
+            Route::delete('/address/{id}', [UserAddressController::class, 'remove'])->name('delete-user-address');
+
             Route::get('/orders', [TransactionController::class, 'all'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detailTransaction'])->name('detail-order');
         });

@@ -6,10 +6,11 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::name('user')->group(function () {
+Route::name('user.')->group(function () {
     Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::get('/menus', [MenuController::class, 'all'])->name('menus');
     Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
@@ -28,7 +29,17 @@ Route::name('user')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
-            Route::get('/orders', [TransactionController::class, 'all'])->name('orders');
+            Route::put('/', [UserController::class, 'edit'])->name('edit-me');
+
+            // user-address
+            Route::get('/address', [UserAddressController::class, 'address'])->name('user-address');
+            Route::get('/address/{id}', [UserAddressController::class, 'detail'])->name('detail-user-address');
+            Route::post('/address', [UserAddressController::class, 'store'])->name('add-user-address');
+            Route::put('/address/{id}', [UserAddressController::class, 'edit'])->name('edit-user-address');
+            Route::delete('/address/{id}', [UserAddressController::class, 'remove'])->name('delete-user-address');
+
+
+            Route::get('/orders', [TransactionController::class, 'orders'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detail'])->name('detail-order');
         });
         Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
@@ -39,7 +50,7 @@ Route::name('user')->group(function () {
 });
 
 // tambahin role juga untuk middlewwarenya
-Route::name('admin')->prefix('admin')->group(function () {
+Route::name('admin.')->prefix('admin')->group(function () {
 
     // dashboar, kelola menu, jdwal dan pemesanan
 
@@ -51,25 +62,3 @@ Route::name('admin')->prefix('admin')->group(function () {
     Route::get('/signin', [AdminController::class, 'signin'])->name('signin');
 });
 
-
-
-
-
-Route::name('testing')->prefix('testing')->group(function () {
-    Route::get('/', [UserController::class, 'index'])->name('home');
-    Route::get('/menus', [UserController::class, 'menus'])->name('menus');
-    Route::get('/menus/{id}', [UserController::class, 'detailMenu'])->name('detail-menu');
-    Route::get('/schedule', [UserController::class, 'schedules'])->name('schedules');
-    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-    Route::get('/contact', [UserController::class, 'contact'])->name('contact');
-
-    // buat autentikasi disini banh
-
-    Route::get('/signup', [App\Http\Controllers\Testing\AuthController::class, 'signup'])->name('signup');
-    Route::get('/signin', [App\Http\Controllers\Testing\AuthController::class, 'signin'])->name('signin');
-    Route::post('/signin', [AuthController::class, 'signinHandler'])->name('signin-handler');
-    Route::post('/signup', [AuthController::class, 'signupHandler'])->name('signup-handler');
-
-    Route::get('/authorized', [App\Http\Controllers\Testing\AuthController::class, 'authorized'])->name('authorized');
-
-});
