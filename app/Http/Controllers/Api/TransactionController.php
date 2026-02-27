@@ -7,12 +7,15 @@ use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
+use App\TransactionResponse;
 use Illuminate\Http\Request;
 use Log;
 use Exception;
 
 class TransactionController extends Controller
 {
+
+    use TransactionResponse;
 
     private TransactionService $transactionService;
 
@@ -69,7 +72,7 @@ class TransactionController extends Controller
             // $transactions = TransactionResource::collection($transactions);
             return $this->responseData->create(
                 'Successfully Getting Data!',
-                $transactions,
+                $this->formatPaginationData($transactions),
             );
             
         } catch (Exception $e) {

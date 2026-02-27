@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\WebMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::name('user.')->group(function () {
@@ -26,7 +27,7 @@ Route::name('user.')->group(function () {
     Route::post('/signup', [AuthController::class, 'signupHandler'])->name('signup-handler');
 
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(WebMiddleware::class)->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
             Route::put('/', [UserController::class, 'edit'])->name('edit-me');

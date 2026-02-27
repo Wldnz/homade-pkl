@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TestEmailController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Middleware\ApiMiddleware;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/user', function (Request $request) {
@@ -52,7 +53,7 @@ Route::name('api')->group(function () {
     });
 
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(ApiMiddleware::class)->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
             Route::put('/', [UserController::class, 'edit'])->name('edit-me');
