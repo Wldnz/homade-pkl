@@ -29,10 +29,11 @@ Route::name('user.')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
+            Route::put('/', [UserController::class, 'edit'])->name('edit-me');
 
             // user-address
             Route::get('/address', [UserAddressController::class, 'address'])->name('user-address');
-            // Route::get('/address/{id}', [UserAddressController::class, 'detail'])->name('detail-user-address');
+            Route::get('/address/{id}', [UserAddressController::class, 'detail'])->name('detail-user-address');
             Route::post('/address', [UserAddressController::class, 'store'])->name('add-user-address');
             Route::put('/address/{id}', [UserAddressController::class, 'edit'])->name('edit-user-address');
             Route::delete('/address/{id}', [UserAddressController::class, 'remove'])->name('delete-user-address');

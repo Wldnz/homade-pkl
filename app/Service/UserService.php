@@ -26,6 +26,14 @@ class UserService
         return User::create($data);
     }
 
+    public function edit(User $user, array $data){
+        return $user->update($data);
+    }
+
+    public function remove(User $user){
+        return $user->delete();
+    }
+
     public function login(User $user, $isRemember = true)
     {
         return Auth::login($user, $isRemember);

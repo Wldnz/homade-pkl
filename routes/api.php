@@ -54,6 +54,7 @@ Route::name('api')->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
+            Route::put('/', [UserController::class, 'edit'])->name('edit-me');
 
             // user address
             Route::get('/address', [UserAddressController::class, 'address'])->name('user-address');

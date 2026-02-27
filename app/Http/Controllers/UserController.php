@@ -42,5 +42,14 @@ class UserController extends Controller
         }
     }
 
+    public function edit(){
+        try{
+
+        }catch(Exception $e){
+            Log::error($e->getMessage());
+            
+        }
+    }
+
 
 }
