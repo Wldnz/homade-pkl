@@ -28,9 +28,9 @@
 
     <div class="d-flex w-100 h-40px align-items-center mt-5 mb-5 justify-content-center">
         <div class="d-flex h-100 gap-5">
-            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center justify-content-center"><img class="w-50 h-50" src="icons/facebook.svg" alt=""></a>
-            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center justify-content-center"><img class="w-50 h-50" src="icons/x.svg" alt=""></a>
-            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center justify-content-center"><img class="w-50 h-50" src="icons/instagram.svg" alt=""></a>
+            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center rounded-circle justify-content-center"><img class="w-50 h-50" src="icons/facebook.svg" alt=""></a>
+            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center rounded-circle justify-content-center"><img class="w-50 h-50" src="icons/x.svg" alt=""></a>
+            <a href="/" class="d-flex h-100 ratio-1 bg-white align-items-center rounded-circle justify-content-center"><img class="w-50 h-50" src="icons/instagram.svg" alt=""></a>
         </div>
     </div>
     
