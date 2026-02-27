@@ -4,10 +4,10 @@
 
 <!DOCTYPE html>
 <html lang="en">
-    @include('components.header' )
+    @include('components.header',[ "page" => "home"])
 
     <body class="d-flex flex-column">
-        @include('components.navbarHead',[ "page" => "home", "size" => "large"])
+        @include('components.navbarHead',[ "page" => "home", "bg" => "black"])
         
         <div class="bg-gradient-bw d-flex h-100 flex-shrink-0 flex-column">
 

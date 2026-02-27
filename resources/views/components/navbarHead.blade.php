@@ -1,6 +1,6 @@
 @php
     $page;
-    $size;
+    $bg;
     $placeImg = "https://placehold.co/400";
 @endphp
 
@@ -8,7 +8,7 @@
     
     <!--begin::Header container-->
 
-    <div class="container-xxl d-flex align-items-center justify-content-center h-200px bg-black" id="kt_app_header_container">
+    <div class="container-xxl d-flex align-items-center justify-content-center h-200px {{ $bg == "black" ? 'bg-black' : '' }} {{ $bg == "grey" ? 'bg-grey' : '' }}" id="kt_app_header_container">
         
         <div class="d-flex justify-content-between align-items-stretch w-90 h-100">
             <!--begin::Logo-->
@@ -32,7 +32,17 @@
                         <div class="menu-item">
                             <!--begin:Menu link-->
                             <a href="/" class="menu-link">
-                                <span class="menu-title text-white">Home</span>
+                                <span class="menu-title fs-1 {{ $page == "home" ? 'text-yellow' : 'text-white fw-normal' }}">Home</span>
+                            </a>
+                            <!--end:Menu link-->
+                        </div>
+                        <!--end:Menu item-->
+
+                        <!--begin:Menu item-->
+                        <div class="menu-item">
+                            <!--begin:Menu link-->
+                            <a href="/menus" class="menu-link">
+                                <span class="menu-title fs-1 {{ $page == "menu" ? 'text-yellow' : 'text-white fw-normal' }}">Menu</span>
                             </a>
                             <!--end:Menu link-->
                         </div>
@@ -42,7 +52,7 @@
                         <div class="menu-item">
                             <!--begin:Menu link-->
                             <a href="/" class="menu-link">
-                                <span class="menu-title text-white">Menu</span>
+                                <span class="menu-title fs-1 {{ $page == "schedule" ? 'text-yellow' : 'text-white fw-normal' }}">Jadwal</span>
                             </a>
                             <!--end:Menu link-->
                         </div>
@@ -52,7 +62,7 @@
                         <div class="menu-item">
                             <!--begin:Menu link-->
                             <a href="/" class="menu-link">
-                                <span class="menu-title text-white">Jadwal</span>
+                                <span class="menu-title fs-1 {{ $page == "profile" ? 'text-yellow' : 'text-white fw-normal' }}">Profil</span>
                             </a>
                             <!--end:Menu link-->
                         </div>
@@ -62,17 +72,7 @@
                         <div class="menu-item">
                             <!--begin:Menu link-->
                             <a href="/" class="menu-link">
-                                <span class="menu-title text-white">Profil</span>
-                            </a>
-                            <!--end:Menu link-->
-                        </div>
-                        <!--end:Menu item-->
-
-                        <!--begin:Menu item-->
-                        <div class="menu-item">
-                            <!--begin:Menu link-->
-                            <a href="/" class="menu-link">
-                                <span class="menu-title text-white">Contact</span>
+                                <span class="menu-title fs-1 {{ $page == "contact" ? 'text-yellow' : 'text-white fw-normal' }}">Contact</span>
                             </a>
                             <!--end:Menu link-->
                         </div>
