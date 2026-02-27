@@ -42,7 +42,6 @@ class TransactionController extends Controller
         $status = $request->query('status');
         $status_delivery = $request->query('status_delivery');
         
-        $page = $request->query('page', 1);
         $limit = $request->query('limit', 3);
         
         $delivery_at = $request->query('delivery_at');
@@ -55,7 +54,6 @@ class TransactionController extends Controller
                 $sort_by,
                 $status,
                 $status_delivery,
-                $page,
                 $limit,
                 $delivery_at
             );
@@ -68,9 +66,10 @@ class TransactionController extends Controller
                 );
             }
             
+            // $transactions = TransactionResource::collection($transactions);
             return $this->responseData->create(
                 'Successfully Getting Data!',
-                TransactionResource::collection($transactions)
+                $transactions,
             );
             
         } catch (Exception $e) {

@@ -8,12 +8,9 @@ class PartnerService{
 
     public function all(
         array $columns=[ 'name', 'name', 'image_url' ],
-        int|null $limit = null,
+        int|null $limit = 30,
     ){
-        return Partner::when($limit, function($query, $limit){
-            return $query->limit($limit);
-        })
-        ->select($columns)->get();
+        return Partner::paginate($limit, $columns);
     }
 
 }

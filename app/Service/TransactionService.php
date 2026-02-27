@@ -20,7 +20,6 @@ class TransactionService
         string | null $sort_by,
         string | null $status,
         string | null $status_delivery,
-        int $page = 1,
         int $limit = 3,
         string | null $delivery_at
     ) {
@@ -53,11 +52,7 @@ class TransactionService
 
             ->when($category, function($query, $category){
                 return $query->where('category', $category);
-            })
-
-            ->limit($limit)
-            ->offset($page - 1)
-            ->get();
+            })->paginate($limit);
     }
 
     public function detail(string $id)
