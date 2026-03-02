@@ -9,6 +9,8 @@ class Order extends Model
 {
     use HasUuids;
 
+    protected $table = 'transaction_orders';
+
     public function menu_price(){
         return $this->belongsTo(MenuPrice::class, 'id_menu_price')
         ->with([

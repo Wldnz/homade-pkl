@@ -23,6 +23,7 @@ class UserSeeder extends Seeder
                 "email" => "customer@homade.id",
                 "password" => Hash::make("customermade14#"),
                 'role' => 'customer',
+                'phone' => '812345678',
                 "address" => [
                     [
                         "phone" => '812345678',
@@ -30,23 +31,32 @@ class UserSeeder extends Seeder
                         'address' => fake()->address(),
                         'note' => 'itu di depan rumahnya si first_name',
                         'longitude' => fake()->longitude(),
+                        'is_main_address' => true,
                         'latitude' => fake()->latitude(),
                     ]
                 ]
+            ],
+            [
+                "first_name" => "Ahmad",
+                "last_name" => "Driver",
+                "email" => "driver.ahmad@homade.id",
+                "phone" => '8128419182',
+                "role" => 'driver',
+                "password" => Hash::make('ahmaddrivernihbossenggoldong23!')
             ],
             [
                 "first_name" => "Admin",
                 "last_name" => "Homade",
                 "email" => "admin@homade.id",
                 'role' => 'admin',
-                "password" => Hash::make("adminmodemad12#")
+                "password" => Hash::make(env('ADMIN_PASSWORD'))
             ],
             [
                 "first_name" => "Owner",
                 "last_name" => "Homade",
                 "email" => "owmer@homade.id",
                 'role' => 'admin',
-                "password" => Hash::make("ownermakesmile2#")
+                "password" => Hash::make(env('OWNER_PASSWORD'))
             ]
         ];
 
@@ -56,6 +66,7 @@ class UserSeeder extends Seeder
                 'last_name' => $user['last_name'],
                 'email' => $user['email'],
                 'role' => $user['role'],
+                'phone' => $user['phone'] ?? null,
                 'password' => $user['password'],
             ]);
             if ($createdUser->role === 'customer') {
@@ -69,6 +80,7 @@ class UserSeeder extends Seeder
                         'note' => $address['note'],
                         'longitude' => $address['longitude'],
                         'latitude' => $address['latitude'],
+                        'is_main_address' => $address['is_main_address'],
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

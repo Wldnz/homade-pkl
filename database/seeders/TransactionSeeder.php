@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\MenuPrice;
-use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\TransactionAddress;
+use App\Models\TransactionDriver;
+use App\Models\TransactionOrder;
 use App\Models\TransactionPaymentProof;
 use App\Models\TransactionProof;
 use App\Models\User;
@@ -15,7 +16,6 @@ use App\StatusDelivery;
 use App\StatusTransaction;
 use App\TransactionCategory;
 use App\TransactionPaymentProofStatus;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TransactionSeeder extends Seeder
@@ -28,20 +28,15 @@ class TransactionSeeder extends Seeder
 
         $transactions = [
             [
-                'status' => StatusTransaction::PAID,
-                'status_delivery' => StatusDelivery::PROCESS,
-                'shipping_cost' => 10000,
-                'delivery_at' => now()->addDays(2),
+                'status' => StatusTransaction::WAITING_FOR_INVOICE,
+                'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
+                'delivery_at' => now()->addDays(5),
                 'notes' => [
-                    'Bang ini jangan pake nasi ya!',
-                    'tolong sambelnya yang sasetan aja ya bang',
-                    'ini makanannya jangan di kasih sayuran ya bang!'
+                    'Bang gw pesan buat besok ya, tolong buatkan invoicenya',
                 ],
-                'payment' => [
-                    'status' => TransactionPaymentProofStatus::ACCEPTED,
-                ]
             ],
             [
+                'shipping_cost' => 5000,
                 'status' => StatusTransaction::PENDING,
                 'status_delivery' => StatusDelivery::WAIT_FOR_CONFIRMATION,
                 'delivery_at' => now()->addDays(1),
@@ -53,6 +48,21 @@ class TransactionSeeder extends Seeder
                 ]
             ],
             [
+                'status' => StatusTransaction::PAID,
+                'status_delivery' => StatusDelivery::PROCESS,
+                'shipping_cost' => 10000,
+                'delivery_at' => now()->addDays(2),
+                'notes' => [
+                    'Bang ini jangan pake nasi ya!',
+                    'tolong sambelnya yang sasetan aja ya bang',
+                    'ini makanannya jangan di kasih sayuran ya bang!'
+                ],
+                'payment' => [
+                    'status' => TransactionPaymentProofStatus::ACCEPTED,
+                ],
+                // '' blm ada driver
+            ],
+            [
                 'status' => StatusTransaction::SUCCESS,
                 'status_delivery' => StatusDelivery::DELIVERED,
                 'delivery_at' => now()->addDays(1),
@@ -61,6 +71,11 @@ class TransactionSeeder extends Seeder
                 ],
                 'payment' => [
                     'status' => TransactionPaymentProofStatus::ACCEPTED,
+                ],
+                'driver' => [
+                    'status' => StatusDelivery::DELIVERED,
+                    'picked_up_at' => now()->addDays(1),
+                    'delivered_at' => now()->addDays(1)
                 ]
             ],
             [
@@ -99,8 +114,10 @@ class TransactionSeeder extends Seeder
                     $quantity = random_int(5, 120);
                     array_push($orders, [
                         'id_menu_price' => $menuPrice->id,
-                        'total_price' => $menuPrice->price * $quantity,
+                        'id_menu' => $menuPrice->id_menu,
+                        'price_at_purchase' => $menuPrice->price,
                         'quantity' => $quantity,
+                        'total_price' => $menuPrice->price * $quantity,
                         'note' => $note
                     ]);
                     $subtotal += $menuPrice->price * $quantity;
@@ -124,9 +141,11 @@ class TransactionSeeder extends Seeder
                 ]);
 
                 foreach ($orders as $order) {
-                    Order::create([
+                    TransactionOrder::create([
                         'id_transaction' => $createdTransaction->id,
                         'id_menu_price' => $order['id_menu_price'],
+                        'id_menu' => $order['id_menu'],
+                        'price_at_purchase' => $order['price_at_purchase'],
                         'total_price' => $order['total_price'],
                         'quantity' => $order['quantity'],
                         'note' => $order['note'],
@@ -161,6 +180,17 @@ class TransactionSeeder extends Seeder
                     ]);
                 }
 
+                if(isset($transaction['driver'])){
+                    TransactionDriver::create([
+                        'id_transaction' => $createdTransaction->id,
+                        'id_driver' => User::where('role', 'driver')->inRandomOrder()->first()->value('id'),
+                        'status' => $transaction['driver']['status'],
+                        'picked_up_at' => $transaction['driver']['picked_up_at'],
+                        'delivered_at' => $transaction['driver']['delivered_at'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
         }
