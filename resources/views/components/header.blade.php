@@ -3,6 +3,7 @@
     @vite([
         'sass/app.scss', 
         'sass/metronic/style.scss', 
+		
     ])
     <title>Homade</title>
 		<meta charset="utf-8" />

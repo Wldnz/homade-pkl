@@ -1,3 +1,27 @@
-<div>
-    <!-- Life is available only in the present moment. - Thich Nhat Hanh -->
-</div>
+@php
+    $placeImg = "https://placehold.co/400";
+@endphp
+
+<!DOCTYPE html>
+<html lang="en">
+    @include('components.header' )
+
+    <body class="d-flex flex-column">
+        @include('components.navbarHead',[ "page" => "menu", "bg" => "grey"])
+        
+
+
+        @include('components.navbarFoot',[ "page" => "menu"])
+        <script src="assets/plugins/global/plugins.bundle.js"></script>
+        <script src="assets/js/scripts.bundle.js"></script>
+        <script>
+
+            function focusInput() {
+                document.getElementById("searchInput").focus();
+            }
+
+        </script>
+    </body>
+
+
+</html>
