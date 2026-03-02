@@ -4,9 +4,11 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\TestEmailController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Middleware\ApiMiddleware;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/user', function (Request $request) {
@@ -51,7 +53,7 @@ Route::name('api')->group(function () {
     });
 
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(ApiMiddleware::class)->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
             Route::put('/', [UserController::class, 'edit'])->name('edit-me');
@@ -65,7 +67,9 @@ Route::name('api')->group(function () {
 
             Route::get('/orders', [TransactionController::class, 'all'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detailTransaction'])->name('detail-order');
-        });
+
+            });
+            Route::get('/test-email', [TestEmailController::class, 'local'])->name('test-email');
         Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
     });
 
