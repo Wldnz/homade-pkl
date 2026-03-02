@@ -119,9 +119,11 @@ class UserAddressController extends Controller
             // cek terlebih dahulu apakah alamatnya sudah ada 3?
             $address = $this->userAddressService->all();
 
+            $address_limit = (int) env('MAXIMAL_LIMIT_CUSTOMER_ADDRESS', 3); 
+
             if ($address->count() >= 3) {
                 return $this->responseData->create(
-                    'Maaf, Tidak Bisa Membuat Alamat Pengiriman Lebih Dari 3',
+                    "Maaf, Tidak Bisa Membuat Alamat Pengiriman Lebih Dari $address_limit",
                     status: 'warning',
                     status_code: 403
                 );

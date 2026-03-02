@@ -39,7 +39,7 @@ class ProfileController extends Controller
                 isJson:false
             );
 
-            return view('contact', compact('response'));
+            return view('profile', compact('response'));
 
         }catch(Exception $e){
             Log::error($e->getMessage());
@@ -49,7 +49,7 @@ class ProfileController extends Controller
                 status_code:500,
                 isJson:false
             );
-            return view('contact', compact('response'));
+            return view('profile', compact('response'));
         }
 
     }

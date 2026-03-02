@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('first_name', 120);
             $table->string('last_name', 120);
             $table->string('email')->unique();
+            $table->string('phone', 15)->nullable();
             $table->enum("role", UserRole::cases())->default(UserRole::CUSTOMER);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -34,6 +35,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->decimal('longitude', 11, 8);
             $table->decimal('latitude', 10, 8);
+            $table->boolean('is_main_address')->default(false);
             $table->timestamps();
         });
 

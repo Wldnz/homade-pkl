@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('feedbacks', function (Blueprint $table) {
             $table->uuid("id")->primary();
             $table->foreignUuid("id_user");
+            $table->foreignUuid("id_oder");
+            $table->foreignId('id_menu');
             $table->text("value");
             $table->decimal("ratings"); // gimana ya bingung kalo decimal
             $table->timestamps();

@@ -74,6 +74,7 @@ class TransactionController extends Controller
                 'Successfully Getting Data!',
                 $this->formatPaginationData($transactions),
             );
+
             
         } catch (Exception $e) {
             Log::error($e->getMessage());

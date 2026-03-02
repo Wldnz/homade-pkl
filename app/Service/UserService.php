@@ -31,7 +31,7 @@ class UserService
     }
 
     public function remove(User $user){
-        return $user->delete();
+        return $user->delete();;
     }
 
     public function login(User $user, $isRemember = true)
