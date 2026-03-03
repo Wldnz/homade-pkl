@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailUserAddressResource;
 use App\Http\Resources\UserAddressResource;
 use App\ResponseData;
-use App\Service\AchievementService;
-use App\Service\PartnerService;
 use App\Service\UserAddressService;
 use Exception;
 use Illuminate\Http\Request;

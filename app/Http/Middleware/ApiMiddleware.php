@@ -26,13 +26,7 @@ class ApiMiddleware
         $responseData = new ResponseData();
 
         return $responseData->create(
-            'Unathorized',
-            [
-                'data' => [
-                    auth()->check(),
-                    auth()->user()
-                ],
-            ],
+            'Kamu memerlukan login terlebih dahulu untuk bisa mengakses',
             status: 'warning',
             status_code: 401
         );

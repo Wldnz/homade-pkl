@@ -14,7 +14,7 @@ class ResponseData
     public function create(
         string $message,
         mixed $data = null,
-        string $error = null,
+        array $errors = null,
         string $status = 'success',
         int $status_code = 200,
         bool $isJson = true,
@@ -24,8 +24,8 @@ class ResponseData
             'status' => $status,
             'status_code' => $status_code
         ];
-        if ($error) {
-            $response['error'] = $error;
+        if ($errors) {
+            $response['errors'] = $errors;
         }
         if ($data) {
             $response['data'] = $data;

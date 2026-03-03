@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SuccessfullyRegistered;
 use App\Models\User;
 use App\ResponseData;
 use App\Service\UserService;
@@ -10,7 +11,9 @@ use Auth;
 use Exception;
 use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Log;
+use Mail;
 use Validator;
 
 class AuthController extends Controller
@@ -32,20 +35,19 @@ class AuthController extends Controller
             $credential = Validator::make($request->all(), [
                 'email' => 'required|email|min:8',
                 'password' => 'required|min:8'
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'email' => ':attribute harus berupa email yang valid!',
+                'min' => ':attribute minimal harus memiliki :min karater'
+            ], [
+                'email' => 'Alamat Email',
+                'password' => 'Kata Sandi'
             ]);
-
-            $data = [
-                'email' => $request->email ?? '',
-                'password' => $request->password ?? ''
-            ];
 
             if ($credential->fails()) {
                 return $this->responseData->create(
                     'Data Yang Dimasukkan Belum Valid Nih!',
-                    [
-                        'errors' => $credential->errors(),
-                        'input' => $data
-                    ],
+                    errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
                 );
@@ -56,7 +58,6 @@ class AuthController extends Controller
             if (!$user) {
                 return $this->responseData->create(
                     'Tidak dapat menemukan email',
-                    $data,
                     status: 'warning',
                     status_code: 404,
                 );
@@ -65,7 +66,6 @@ class AuthController extends Controller
             if (!Hash::check($request->password, $user->password)) {
                 return $this->responseData->create(
                     'Password Yang Anda Masukkan Tidak Valid!',
-                    $data,
                     status: 'warning',
                     status_code: 404,
                 );
@@ -93,27 +93,33 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         try {
-
             $credential = Validator::make($request->all(), [
-                'first_name' => 'required|min:3',
+                'first_name' => 'required|min:2',
                 'email' => 'required|min:8|email',
-                'password' => 'required|min:8'
+                'password' => [
+                    'required',
+                    Password::min(8)->mixedCase()->numbers()->symbols(),
+                ],
+                'password_confirmation' => 'required|same:password'
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'email' => ':attribute harus berupa email yang valid!',
+                'min' => ':attribute minimal harus memiliki :min karater',
+                'same' => ':attribute harus sama dengan :other',
+                'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
+                'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka'
+            ], [
+                'first_name' => 'Nama Depan',
+                'email' => 'Alamat Email',
+                'password' => 'Kata Sandi',
+                'password_confirmation' => 'Konfirmasi Kata Sandi'
             ]);
-
-            $data = [
-                'first_name' => $request->first_name ?? '',
-                'last_name' => $request->last_name ?? '',
-                'email' => $request->email ?? '',
-                'password' => $request->password ?? ''
-            ];
 
             if ($credential->fails()) {
                 return $this->responseData->create(
                     'Data yang dimasukkan belum valid!',
-                    [
-                        'errors' => $credential->errors(),
-                        'input' => $data
-                    ],
+                    errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
                 );
@@ -124,7 +130,6 @@ class AuthController extends Controller
             if ($user) {
                 return $this->responseData->create(
                     'Email sudah terdaftar!',
-                    $data,
                     status: 'warning',
                     status_code: 403
                 );
@@ -136,6 +141,8 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
+
+            Mail::to($user->email)->send(new SuccessfullyRegistered($user));
 
             return $this->responseData->create(
                 'Berhasil Membuat Akun!',
@@ -162,7 +169,7 @@ class AuthController extends Controller
 
     public function signout()
     {
-        $this->userService->logout();
+        Auth::guard('api')->logout();
         return $this->responseData->create(
             'Successfully Sign out!!',
         );
