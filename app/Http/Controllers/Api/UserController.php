@@ -9,6 +9,7 @@ use App\Service\UserService;
 use Exception;
 use Illuminate\Http\Request;
 use Log;
+use Propaganistas\LaravelPhone\Rules\Phone;
 use Validator;
 
 
@@ -37,34 +38,37 @@ class UserController extends Controller
             Log::error($e->getMessage());
             return $this->responseData->create(
                 'Telah terjadi kesalaha pada server',
-                status:'error',
+                status: 'error',
                 status_code: 500,
             );
         }
     }
 
-    public function edit(Request $request){
-        try{
+    public function edit(Request $request)
+    {
+        try {
 
-            $validator = Validator::make($request->all(),[
+            $validator = Validator::make($request->all(), [
                 'first_name' => 'required|string|min:3',
-                // last_name (opsional),
+                // las_name (opsional),
+                'phone' => 'required|phone:mobile,ID|min:8|max:15',
                 'email' => 'required|email|min:3',
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'email' => ':attribute harus memiliki email yang valid!',
+                'min' => ':attribute harus memiliki minimal :min',
+                'max' => ':attribute harus memiliki maximal :max',
+                'phone' => ':attribute kurang benar, silahkan cek kembali!'
+            ], [
+                'first_name' => 'Nama Depan',
+                'phone' => 'Nomor Telepon',
+                'email' => 'Alamat Email'
             ]);
 
-            $data = [
-                'first_name' => $request->first_name ?? '',
-                'last_name' => $request->last_name ?? '',
-                'email' => $request->email ?? ''
-            ];
-
-            if($validator->fails()){
+            if ($validator->fails()) {
                 return $this->responseData->create(
                     'Data Yang Dimasukkan Belum Valid',
-                    [
-                        'errors' => $validator->errors(),
-                        'input' => $data,
-                    ],
+                    errors: $validator->errors()->toArray(),
                     status: 'warning',
                     status_code: 422
                 );
@@ -72,17 +76,18 @@ class UserController extends Controller
 
             $user = auth()->user();
 
-            $this->userService->edit($user, $data);
+            $this->userService->edit($user, [
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name ?? '',
+                'email' => $request->email,
+                'phone' => $request->phone
+            ]);
 
             return $this->responseData->create(
                 'Berhasil Mengubah Data Pengguna',
-                [
-                    'id' => $user->id,
-                    ...$data
-                ]
             );
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             return $this->responseData->create(
                 'Telah Terjadi Kesalahan Pada Server',
