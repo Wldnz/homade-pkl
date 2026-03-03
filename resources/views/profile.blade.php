@@ -101,7 +101,7 @@
         
         <div class="d-flex flex-shrink-0 align-items-center justify-content-center w-100">
 
-            <div class="d-flex gap-5 w-90">
+            <div class="d-flex w-90">
 
                 <div class="d-flex flex-column align-items-center w-50">
                     <div class="w-75 d-flex flex-column gap-1 align-items-center">
@@ -118,7 +118,30 @@
                     </div>
                 </div>
                 
-                <div class="w-50 h-100px bg-warning"></div>
+                <div class="w-50 d-flex flex-column">
+
+                    <div class="w-100 h-125px d-flex flex-column justify-content-between">
+                        <p class="fs-2 fw-bolder text-accent">JEJAK LANGKAH</p>
+                        <p class="fsc-4 fw-bold">Pencapaian Homade</p>
+                        <p class="fs-3 fw-bolder">Prestasi yand dicapai oleh Homade sebagai startup copany</p>
+                    </div>
+
+                    <div class="d-flex w-100 h-150px gap-5">
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center justify-content-center h-100">
+                            <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
+                            <div class="d-flex w-1px h-100 bg-black"></div>
+                        </div>
+                        <div class="d-flex w-100 h-100 bg-danger"></div>
+                    </div>
+
+                    <div class="d-flex w-100 h-150px gap-5">
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center justify-content-center h-100">
+                            <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
+                            <div class="d-flex w-1px h-100 bg-black"></div>
+                        </div>
+                        <div class="d-flex w-100 h-100 bg-danger"></div>
+                    </div>
+                </div>
 
             </div>
                 
