@@ -26,6 +26,9 @@ Route::name('user.')->group(function () {
     Route::post('/signin', [AuthController::class, 'signinHandler'])->name('signin-handler');
     Route::post('/signup', [AuthController::class, 'signupHandler'])->name('signup-handler');
 
+    // reset password..
+    Route::post('/reset-password', [AuthController::class, 'reset'])->name('reset-password');
+
 
     Route::middleware(WebMiddleware::class)->group(function () {
         Route::prefix('me')->group(function () {

@@ -188,6 +188,13 @@ class AuthController extends Controller
         }
     }
 
+    public function reset(){
+
+        // validasi token dan email disini
+
+        return view('reset-password');
+    }
+
     public function signout()
     {
         $this->userService->logout();

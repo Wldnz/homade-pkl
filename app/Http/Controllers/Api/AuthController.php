@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SuccessfullyChangedPassword;
 use App\Mail\SuccessfullyRegistered;
 use App\ResponseData;
 use App\Service\UserService;
@@ -172,5 +173,152 @@ class AuthController extends Controller
         return $this->responseData->create(
             'Successfully Sign out!!',
         );
+    }
+
+    public function forgot(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                ['email' => 'email|required|min:3'],
+                [
+                    'required' => ':attribute dibutuhkan!',
+                    'email' => ':attribute membutuhkan email yang valid',
+                    'min' => ':attribute membutuhkan minimal :min karakter'
+                ],
+                [
+                    'email' => 'Alamat Email'
+                ]
+            );
+
+            if ($validator->fails()) {
+                return $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    errors: $validator->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422
+                );
+            }
+
+            $user = $this->userService->getByEmail($request->email);
+
+            if (!$user) {
+                return $this->responseData->create(
+                    'Tidak Dapat Menemukan Alamat Email',
+                    status: 'warning',
+                    status_code: 404
+                );
+            }
+
+            $isSent = \Illuminate\Support\Facades\Password::sendResetLink(
+                $request->only('email')
+            );
+
+            if (!$isSent == \Illuminate\Support\Facades\Password::ResetLinkSent) {
+                return $this->responseData->create(
+                    'Tidak Dapat Mengirimkan Notifikasi Ke Email',
+                    status: 'warning',
+                    status_code: 404// ini apa yang enak ya status codenya ??
+                );
+            }
+
+            return $this->responseData->create(
+                'Berhasil Mengirimakn Forgot Password',
+            );
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
+    }
+
+    // kemungikannini tidak di pakai, karena langsung ke websitenya
+    public function reset(Request $request)
+    {
+        try {
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
+    }
+
+    public function change(Request $request)
+    {
+        try {
+
+            $credential = Validator::make($request->all(), [
+                'old_password' => 'required|string|min:8',
+                'password' => [
+                    'required',
+                    Password::min(8)->mixedCase()->numbers()->symbols(),
+                ],
+                'password_confirmation' => 'required|same:password'
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'min' => ':attribute minimal harus memiliki :min karater',
+                'same' => ':attribute harus sama dengan :other',
+                'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
+                'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka'
+            ], [
+                'old_password' => 'Kata Sandi Lama',
+                'password' => 'Kata Sandi Baru',
+                'password_confirmation' => 'Konfirmasi Kata Sandi Baru'
+            ]);
+
+            if ($credential->fails()) {
+                return $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    errors: $credential->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                );
+            }
+
+            $user = auth()->user();
+
+            if (!Hash::check($request->old_password, $user->password)) {
+                return $this->responseData->create(
+                    'Pastikan memasukkan kata sandi yang benar!',
+                    status: 'warning',
+                    status_code: 404,
+                );
+            }
+
+            if ($request->old_password == $request->password) {
+                return $this->responseData->create(
+                    'Pastikan kata sandi yang dimasukkan tidak sama dengan kata sandi yang lama!',
+                    status: 'warning',
+                    status_code: 400,
+                );
+            }
+
+            $this->userService->edit($user, [
+                'password' => Hash::make($request->password)
+            ]);
+
+            Mail::to($user->email)->send(new SuccessfullyChangedPassword($user));
+
+            return $this->responseData->create(
+                'Berhasil Mengganti Kata Sandi Lama Dengan Kata Sandi Baru'
+            );
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,12 +53,28 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function address(){
+    public function address()
+    {
         return $this->hasMany(UserAddress::class, 'id_user');
     }
 
-    public function orders(){
+    public function orders()
+    {
         return $this->hasMany(Transaction::class, 'id_user');
+    }
+
+    /**
+     * Send a password reset notification to the user.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = route('user.reset-password', [
+            'token' => $token,
+            'email' => $this->email
+        ]);
+        $this->notify(new ResetPasswordNotification($url));
     }
 
 

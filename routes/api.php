@@ -35,6 +35,8 @@ Route::name('api')->group(function () {
 
     Route::post('/signin', [AuthController::class, 'signin'])->name('signin');
     Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
+    Route::post('/forgot-password', [AuthController::class, 'forgot'])->name('create-forgot-password');
+    Route::put('/reset-password/{token}', [AuthController::class, 'reset'])->name('reset-password');
 
     Route::get('/menus', [MenuController::class, 'menu'])->name('menu');
     Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
@@ -43,8 +45,8 @@ Route::name('api')->group(function () {
 
     Route::get('/achievements', [ProfileController::class, 'achievements'])->name('achievements');
     Route::get('/partners', [ProfileController::class, 'partners'])->name('partners');
-    
-    Route::prefix('contact')->group(function(){
+
+    Route::prefix('contact')->group(function () {
         Route::get('/', [ContactController::class, 'contact'])->name('contact');
         Route::get('/full', [ContactController::class, 'full'])->name('contact-full');
         Route::get('/social-media', [ContactController::class, 'socialMedia'])->name('social-media');
@@ -58,6 +60,9 @@ Route::name('api')->group(function () {
             Route::get('/', [UserController::class, 'me'])->name('me');
             Route::put('/', [UserController::class, 'edit'])->name('edit-me');
 
+            // password
+            Route::put('/change-password', [AuthController::class, 'change'])->name('change-password');
+
             // user address
             Route::get('/address', [UserAddressController::class, 'address'])->name('user-address');
             Route::get('/address/{id}', [UserAddressController::class, 'detail'])->name('detail-user-address');
@@ -67,9 +72,8 @@ Route::name('api')->group(function () {
 
             Route::get('/orders', [TransactionController::class, 'all'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detailTransaction'])->name('detail-order');
-
-            });
-            Route::get('/test-email', [TestEmailController::class, 'local'])->name('test-email');
+        });
+        Route::get('/test-email', [TestEmailController::class, 'local'])->name('test-email');
         Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
     });
 
