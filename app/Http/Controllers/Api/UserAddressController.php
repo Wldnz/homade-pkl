@@ -9,6 +9,7 @@ use App\ResponseData;
 use App\Service\UserAddressService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Log;
 use Validator;
 
@@ -86,40 +87,38 @@ class UserAddressController extends Controller
 
             $validate = Validator::make($request->all(), [
                 'fullname' => 'string|required|min:3',
-                'phone' => 'string|required|min:8',
+                'phone' => 'phone:ID,mobile|required|min:8',
                 'label' => 'string|required|min:3',
                 'address' => 'string|required|min:8',
                 'longitude' => 'string|required|min:8',
                 'latitude' => 'string|required|min:8',
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'min' => ':attribute minimal harus memiliki minimal :min karakter',
+                'max' => ':attribute minimal harus memiliki maximal :max karakter',
+                'phone' => ':attribute harus valid ya'
+            ], [
+                'fullname' => 'Nama Penerima',
+                'phone' => 'Nomor Telepon',
+                'label' => 'Label',
+                'address' => 'Alamat',
             ]);
-
-            $input = [
-                'fullname' => $request->fullname ?? '',
-                'phone' => $request->phone ?? '',
-                'label' => $request->label ?? '',
-                'address' => $request->address ?? '',
-                'longitude' => $request->longitude ?? '',
-                'latitude' => $request->latitude ?? '',
-            ];
 
             if ($validate->fails()) {
                 return $this->responseData->create(
                     'Data Belum Valid',
-                    [
-                        'errors' => $validate->errors(),
-                        'input' => $input,
-                    ],
+                    errors: $validate->errors()->toArray(),
                     status: 'warning',
                     status_code: 422
                 );
             }
 
-            // cek terlebih dahulu apakah alamatnya sudah ada 3?
+            // cek terlebih dahulu apakah alamatnya sudah ada lebih dari maximal yang sudah ditentukan?
             $address = $this->userAddressService->all();
 
-            $address_limit = (int) env('MAXIMAL_LIMIT_CUSTOMER_ADDRESS', 3); 
+            $address_limit = (int) env('MAXIMAL_LIMIT_CUSTOMER_ADDRESS', 3);
 
-            if ($address->count() >= 3) {
+            if ($address->count() >= $address_limit) {
                 return $this->responseData->create(
                     "Maaf, Tidak Bisa Membuat Alamat Pengiriman Lebih Dari $address_limit",
                     status: 'warning',
@@ -127,7 +126,9 @@ class UserAddressController extends Controller
                 );
             }
 
-            $address = $this->userAddressService->save([
+            $is_main_address = isset($request->is_main_address) && gettype($request->is_main_address) == 'boolean' && $request->is_main_address;
+
+            $address = $this->userAddressService->saveAndChangeTheMainAdress([
                 'id_user' => auth()->user()->id,
                 'received_name' => $request->fullname,
                 'phone' => $request->phone,
@@ -136,6 +137,7 @@ class UserAddressController extends Controller
                 'note' => $request->note ?? '',
                 'longitude' => $request->longitude,
                 'latitude' => $request->latitude,
+                'is_main_address' => $is_main_address
             ]);
 
             return $this->responseData->create(
@@ -156,32 +158,29 @@ class UserAddressController extends Controller
     public function edit(Request $request, string $id)
     {
         try {
-
             $validate = Validator::make($request->all(), [
                 'fullname' => 'string|required|min:3',
-                'phone' => 'string|required|min:8',
+                'phone' => 'phone:ID,mobile|required|min:8|max:15',
                 'label' => 'string|required|min:3',
                 'address' => 'string|required|min:8',
                 'longitude' => 'string|required|min:8',
                 'latitude' => 'string|required|min:8',
+            ],  [
+                'required' => ':attribute dibutuhkan!',
+                'min' => ':attribute minimal harus memiliki minimal :min karakter',
+                'max' => ':attribute minimal harus memiliki maximal :max karakter',
+                'phone' => ':attribute harus valid ya',
+            ], [
+                'fullname' => 'Nama Penerima',
+                'phone' => 'Nomor Telepon',
+                'label' => 'Label',
+                'address' => 'Alamat',
             ]);
-
-            $input = [
-                'fullname' => $request->fullname ?? '',
-                'phone' => $request->phone ?? '',
-                'label' => $request->label ?? '',
-                'address' => $request->address ?? '',
-                'longitude' => $request->longitude ?? '',
-                'latitude' => $request->latitude ?? '',
-            ];
 
             if ($validate->fails()) {
                 return $this->responseData->create(
                     'Data Belum Valid',
-                    [
-                        'errors' => $validate->errors(),
-                        'input' => $input,
-                    ],
+                    errors: $validate->errors()->toArray(),
                     status: 'warning',
                     status_code: 422
                 );
@@ -197,7 +196,9 @@ class UserAddressController extends Controller
                 );
             }
 
-            $this->userAddressService->update($address, [
+            $is_main_address = isset($request->is_main_address) && gettype($request->is_main_address) == 'boolean' && $request->is_main_address;
+
+            $address = $this->userAddressService->updateAndChangeTheMainAddress($address, [
                 'received_name' => $request->fullname,
                 'phone' => $request->phone,
                 'label' => $request->label,
@@ -205,9 +206,9 @@ class UserAddressController extends Controller
                 'note' => $request->note ?? '',
                 'longitude' => $request->longitude,
                 'latitude' => $request->latitude,
+                'is_main_address' => $is_main_address
             ]);
 
-            // langsung success aja dlu, apa perlu validasi lagi?
             return $this->responseData->create(
                 'Berhasil mengubah data',
                 new DetailUserAddressResource($address),
@@ -236,7 +237,7 @@ class UserAddressController extends Controller
                 );
             }
 
-            $address->delete();
+            $this->userAddressService->remove($address);
 
             return $this->responseData->create(
                 'Berhasil Menghapus Data',

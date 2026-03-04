@@ -19,6 +19,7 @@ class UserAddress extends Model
         'address',
         'note',
         'longitude',
-        'latitude'
+        'latitude',
+        'is_main_address'
     ];
 }
