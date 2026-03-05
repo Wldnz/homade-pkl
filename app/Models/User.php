@@ -23,11 +23,8 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'first_name',
         'last_name',
-        'phone_countr_code',
         'phone',
         'email',
-        'role',
-        'password',
     ];
 
     /**
@@ -70,11 +67,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function sendPasswordResetNotification($token): void
     {
-        $url = route('user.reset-password', [
-            'token' => $token,
-            'email' => $this->email
-        ]);
-        $this->notify(new ResetPasswordNotification($url));
+        $this->notify(new ResetPasswordNotification($token));
     }
 
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\WebMiddleware;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Support\Facades\Route;
 
 Route::name('user.')->group(function () {
@@ -27,7 +28,8 @@ Route::name('user.')->group(function () {
     Route::post('/signup', [AuthController::class, 'signupHandler'])->name('signup-handler');
 
     // reset password..
-    Route::post('/reset-password', [AuthController::class, 'reset'])->name('reset-password');
+    Route::get('/reset-password', [AuthController::class, 'reset'])->name('reset-password');
+    Route::post('/reset-password/{token}', [AuthController::class, 'resetHandler'])->name('reset-password-handler');
 
 
     Route::middleware(WebMiddleware::class)->group(function () {
@@ -48,9 +50,6 @@ Route::name('user.')->group(function () {
         });
         Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
     });
-
-
-
 });
 
 // tambahin role juga untuk middlewwarenya
@@ -68,3 +67,9 @@ Route::name('admin.')->prefix('admin')->group(function () {
     
 ]);
 
+
+Route::get('/testing-notificiation', function (){
+    $token = 'asaswasas';
+    return (new ResetPasswordNotification($token))
+    ->toMail(auth()->user());
+})->middleware(WebMiddleware::class);

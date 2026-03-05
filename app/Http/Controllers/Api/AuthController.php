@@ -151,7 +151,7 @@ class AuthController extends Controller
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'email' => $user->email,
-                    'token' => auth()->guard('api')->login($user),
+                    'token' => auth()->guard('api')->login($user, true),
                 ],
                 status: 'success',
                 status_code: 201
@@ -302,9 +302,7 @@ class AuthController extends Controller
                 );
             }
 
-            $this->userService->edit($user, [
-                'password' => Hash::make($request->password)
-            ]);
+            $this->userService->changePassword($user, Hash::make($request->password));
 
             Mail::to($user->email)->send(new SuccessfullyChangedPassword($user));
 

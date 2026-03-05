@@ -23,7 +23,11 @@ class UserService
 
     public function save(array $data)
     {
-        return User::create($data);
+        $user = new User();
+        $user->fill($data);
+        $user->password = $data['password'];
+        $user->save();
+        return $user;
     }
 
     public function edit(User $user, array $data){
@@ -32,6 +36,12 @@ class UserService
 
     public function remove(User $user){
         return $user->delete();;
+    }
+
+    public function changePassword(User $user, string $hashedPassword){
+        $user->password = $hashedPassword;
+        $user->save();
+        return $user;
     }
 
     public function login(User $user, $isRemember = true)
