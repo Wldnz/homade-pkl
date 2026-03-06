@@ -93,7 +93,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
     // Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     // Route::get('/orders/{id}', [AdminController::class, 'detailOrder'])->name('detail-order');
 })->middleware([
-    
+    WebMiddleware::class
 ]);
 
 

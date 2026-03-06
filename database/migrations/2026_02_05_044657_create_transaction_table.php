@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->enum("status_delivery", StatusDelivery::cases())->default(StatusDelivery::WAIT_FOR_CONFIRMATION);
             $table->enum('refund_status', RefundStatus::cases())->default(RefundStatus::NONE);
             $table->text('refund_reason')->nullable();
+            $table->text('note')->nullable();
             $table->timestamp('delivery_at');
             $table->timestamps();
         });
