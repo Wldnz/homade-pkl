@@ -15,7 +15,7 @@
             
             <div class="d-flex align-items-center h-100">
                 <a href="/">
-                    <img alt="Logo" src="img/logo.svg" class=" h-100 w-lg-100 w-50 app-sidebar-logo-default" />
+                    <img alt="Logo" src="{{ asset("img/logo.svg") }}" class=" h-100 w-lg-100 w-50 app-sidebar-logo-default" />
                 </a>
             </div>
 
@@ -51,7 +51,7 @@
                         <!--begin:Menu item-->
                         <div class="menu-item">
                             <!--begin:Menu link-->
-                            <a href="/" class="menu-link">
+                            <a href="/schedule" class="menu-link">
                                 <span class="menu-title fs-1 {{ $page == "schedule" ? 'text-yellow' : 'text-white fw-normal' }}">Jadwal</span>
                             </a>
                             <!--end:Menu link-->
@@ -61,7 +61,7 @@
                         <!--begin:Menu item-->
                         <div class="menu-item">
                             <!--begin:Menu link-->
-                            <a href="/" class="menu-link">
+                            <a href="/profile" class="menu-link">
                                 <span class="menu-title fs-1 {{ $page == "profile" ? 'text-yellow' : 'text-white fw-normal' }}">Profil</span>
                             </a>
                             <!--end:Menu link-->
@@ -88,7 +88,7 @@
                         <!--begin::Menu wrapper-->
                         <!-- <div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end"> -->
                         <div class="cursor-pointer symbol symbol-35px" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                            <img src="assets/media/avatars/300-3.jpg" class="rounded-circle" alt="user" />
+                            <img src="{{ asset("assets/media/avatars/300-3.jpg")}}" class="rounded-circle" alt="user" />
                         </div>
                         <!--begin::User account menu-->
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
@@ -115,7 +115,7 @@
                             <!--end::Menu separator-->
                             <!--begin::Menu item-->
                             <div class="menu-item px-5">
-                                <a href="account/overview.html" class="menu-link px-5">My Profile</a>
+                                <a href="/" class="menu-link px-5">My Profile</a>
                             </div>
                             <!--end::Menu item-->
                             <!--begin::Menu item-->
