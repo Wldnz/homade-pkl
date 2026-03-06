@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Models\User;
 use App\Models\UserAddress;
+use App\UserRole;
 use Auth;
 use Exception;
 use Log;
@@ -17,8 +18,14 @@ class UserService
 
     public function getByEmail(
         string $email,
+        bool $isManagement,
     ) {
-        return User::where('email', $email)->first();
+        return User::where('email', $email)
+        ->when($isManagement, function($query, $isManagement){
+            return $query->where('role', UserRole::OWNER)
+            ->orWhere('role', UserRole::ADMIN);
+        })
+        ->first();
     }
 
     public function save(array $data)

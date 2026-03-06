@@ -201,5 +201,33 @@ class MenuController extends Controller
         }
     }
 
+    public function getPopulerWeeklyMenu(){
+        try{
+
+            $menus = $this->menuService->getWeeklyPopuler();
+
+            if($menus->isEmpty()){
+                return $this->responseData->create(
+                    'Tidak Dapat Menemukan Menu Populer Mingguan',
+                    status:'warning',
+                    status_code: 404
+                );
+            }
+
+            return $this->responseData->create(
+                'Berhasil mendapatkan menu populer mingguan',
+                MenuResource::collection($menus)
+            );
+
+        }catch(Exception $e){
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status:'error',
+                status_code: 500
+            );
+        }
+    }
+
 
 }

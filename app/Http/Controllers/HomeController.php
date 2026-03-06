@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\MenuResource;
 use App\Http\Resources\PackageResource;
 use App\ResponseData;
 use App\Service\CategoryService;
@@ -42,15 +43,13 @@ class HomeController extends Controller
             $packages = $this->packageService->all();
 
             // menu populer (blm ada)
-            $menus = $this->menuService->all(
-                null, null, null, 1, 3
-            );
+            $menus = $this->menuService->getWeeklyPopuler();
 
             $response = $this->responseData->create(
                 'Berhasil mendapatkan data!',
                 [
                     // menus populer
-                    'menus' => $menus,
+                    'menus' => MenuResource::collection($menus),
                     'categories' => $categories,
                     'packages' => PackageResource::collection($packages),
                     'partners' => $partners,
