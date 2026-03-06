@@ -20,7 +20,7 @@ class UserAddressResource extends JsonResource
             'phone' => $this->phone,
             'label' => $this->label,
             'address' => $this->address,
-            'is_main' => $this->is_main_address
+            'is_main' => (bool) $this->is_main_address
         ];
     }
 }

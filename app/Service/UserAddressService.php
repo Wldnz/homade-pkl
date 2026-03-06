@@ -33,9 +33,10 @@ class UserAddressService
     {
         return DB::transaction(function () use ($data) {
             if (isset($data['is_main_address']) && $data['is_main_address']) {
-                UserAddress::where('id_user', $data['id_user'])
+                $address = UserAddress::where('id_user', $data['id_user'])
                     ->where('is_main_address', true)
-                    ->update(['is_main_address' => false]);
+                    ->first();
+                if($address) $address->update(['is_main_address' => false]);
             }
             return UserAddress::create($data);
         });
@@ -49,11 +50,34 @@ class UserAddressService
     public function updateAndChangeTheMainAddress(UserAddress $address, array $data)
     {
         return DB::transaction(function () use ($address, $data) {
-            if (isset($data['is_main_address']) && $data['is_main_address'] && !$address->is_main_address) {
-                UserAddress::where('id_user', $address->id_user)
-                    ->where('is_main_address', true)
-                    ->update(['is_main_address' => false]);
+            // if ($address->is_main_address && isset($data['is_main_address']) && !$data['is_main_address']) {
+            //     $f_address = UserAddress::where('id_user', $address->id_user)
+            //         ->where('is_main_address', false)
+            //         ->whereNot('id', $address->id)
+            //         ->first();
+            //         if($f_address) $f_address->update(['is_main_address' => true]);
+            //     }
+            // alamat adalah main dan dan ingin merubah ke ke tidak menjadi main alamat
+            if($address->is_main_address && isset($data['is_main_address']) && !$data['is_main_address']){
+                // cek apakah alamat yang sudah menjadi main?
+                $m_address = UserAddress::where([
+                    'id_user' => $address->id_user,
+                    'is_main_address' => true,
+                ])->first();
+                if(!$m_address){
+                    // ubah alamat lain ini menjadi main
+                    $f_address = UserAddress::where([
+                        'id_user' => $address->id_user,
+                        'is_main_address' => false,
+                    ])->first();
+                    if($f_address) $f_address->update(['is_main_address' => true]);
                 }
+            }else if(!$address->is_main_address && isset($data['is_main_address']) && $data['is_main_address']){
+                $f_address = UserAddress::where('id_user', $address->id_user)
+                    ->where('is_main_address', true)
+                    ->first();
+                if($f_address) $f_address->update(['is_main_address' => false]);
+            }
             $address->update($data);
             return $address;
         });

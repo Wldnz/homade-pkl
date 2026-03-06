@@ -54,7 +54,7 @@ class TransactionController extends Controller
                     status_code: 404,
                     isJson:false
                 );
-                return view('profile.orders', compact('response'));
+                return view('profile.order.index', compact('response'));
             }
 
             $response = $this->responseData->create(
@@ -66,7 +66,7 @@ class TransactionController extends Controller
                 isJson:false
             );
 
-            return view('profile.orders', compact('response'));
+            return view('profile.order.index', compact('response'));
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -76,7 +76,7 @@ class TransactionController extends Controller
                 status_code: 500,
                 isJson:false
             );
-            return view('profile.orders', compact('response'));
+            return view('profile.order.index', compact('response'));
         }
     }
 
@@ -92,7 +92,7 @@ class TransactionController extends Controller
                     status_code: 404,
                     isJson:false
                 );
-                return view('profile.detail-order', compact('response'));
+                return view('profile.order.detail', compact('response'));
             }
 
             $response = $this->responseData->create(
@@ -101,7 +101,7 @@ class TransactionController extends Controller
                 isJson:false
             );
 
-            return view('profile.detail-order', compact('response'));
+            return view('profile.order.detail', compact('response'));
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -111,7 +111,7 @@ class TransactionController extends Controller
                 status_code: 500,
                 isJson:false
             );
-            return view('profile.detail-order', compact('response'));
+            return view('profile.order.detail', compact('response'));
         }
     }
 

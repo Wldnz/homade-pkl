@@ -87,16 +87,17 @@ class UserAddressController extends Controller
 
             $validate = Validator::make($request->all(), [
                 'fullname' => 'string|required|min:3',
-                'phone' => 'phone:ID,mobile|required|min:8',
+                'phone' => 'phone:ID,mobile|required|min:8|max:15',
                 'label' => 'string|required|min:3',
                 'address' => 'string|required|min:8',
-                'longitude' => 'string|required|min:8',
-                'latitude' => 'string|required|min:8',
+                'longitude' => 'numeric|required|decimal:-180,180|min:-180|max:180',
+                'latitude' => 'numeric|required|decimal:-90,90|min:-90|max:90',
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'min' => ':attribute minimal harus memiliki minimal :min karakter',
                 'max' => ':attribute minimal harus memiliki maximal :max karakter',
-                'phone' => ':attribute harus valid ya'
+                'phone' => ':attribute harus valid ya',
+                'decimal' => ':attribute adalah sebuah decimal minimal penempatan place adalah :decimal'
             ], [
                 'fullname' => 'Nama Penerima',
                 'phone' => 'Nomor Telepon',
@@ -159,17 +160,18 @@ class UserAddressController extends Controller
     {
         try {
             $validate = Validator::make($request->all(), [
-                'fullname' => 'string|required|min:3',
+                              'fullname' => 'string|required|min:3',
                 'phone' => 'phone:ID,mobile|required|min:8|max:15',
                 'label' => 'string|required|min:3',
                 'address' => 'string|required|min:8',
-                'longitude' => 'string|required|min:8',
-                'latitude' => 'string|required|min:8',
-            ],  [
+                'longitude' => 'numeric|required|decimal:-180,180|min:-180|max:180',
+                'latitude' => 'numeric|required|decimal:-90,90|min:-90|max:90',
+            ], [
                 'required' => ':attribute dibutuhkan!',
                 'min' => ':attribute minimal harus memiliki minimal :min karakter',
                 'max' => ':attribute minimal harus memiliki maximal :max karakter',
                 'phone' => ':attribute harus valid ya',
+                'decimal' => ':attribute adalah sebuah decimal minimal penempatan place adalah :decimal'
             ], [
                 'fullname' => 'Nama Penerima',
                 'phone' => 'Nomor Telepon',
