@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\DetailMenuResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
+use App\Http\Resources\PaginationResource;
 use App\ResponseData;
 use App\Service\ContactService;
 use App\Service\MenuService;
@@ -32,18 +33,20 @@ class MenuController extends Controller
         try {
             
             $search = $request->query('search', '');
-            $theme = $request->query('theme', '');
+            $theme = $request->query('theme');
+            $category = $request->query('category');
             $page = (int) $request->query('page', 1);
             $limit = (int) $request->query('limit', 5);
 
             $menus = $this->menuService->all(
                 $search,
                 $theme,
+                $category,
                 $page,
                 $limit,
             );
 
-            if (empty($menus)) {
+            if ($menus->isEmpty()) {
                 $response = $this->responseData->create(
                     "Tidak dapat menemukan menu",
                     status_code: 404,
@@ -56,12 +59,8 @@ class MenuController extends Controller
             $response = $this->responseData->create(
                 'Berhasil Mendapatkan Menu - Menu',
                 [
-                    'menus' => MenuResource::collection($menus),
-                    'meta' => [
-                        'search' => $search,
-                        'page' => $page,
-                        'limit' => $limit,
-                    ]
+                    'pagination' => new PaginationResource($menus),
+                    'items' => MenuResource::collection($menus),
                 ],
                 isJson:false
             );

@@ -11,8 +11,9 @@ class MenuService
     public function all(
         string|null $search,
         string|null $theme,
+        string|null $category,
         int $page,
-        int $limit,
+        int $limit = 10,
         bool|null $isActive = true,
     ) {
 
@@ -20,23 +21,20 @@ class MenuService
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
             })->where('is_active', $isActive)
-            ->limit($limit)
-            ->offset($page - 1)
-            ->get();
-
-        $new_menus = [];
-
-        if ($theme) {
-            foreach ($menus as $menu) {
-                if ($menu->theme->name === $theme) {
-                    array_push($new_menus, $menu);
-                }
-            }
-        } else {
-            $new_menus = $menus;
-        }
-
-        return $new_menus;
+            ->when($theme, function($query, $theme){
+                return $query->whereHas('theme', function($q) use($theme){
+                    return $q->where('name', $theme);
+                });
+            })
+            ->when($category, function($query, $category){
+                return $query->whereHas('menu_categories' ,function($q) use ($category){
+                    return $q->whereHas('categories', function($qc) use($category){
+                        return $qc->where('name', $category);
+                    });
+                });
+            })
+            ->paginate($limit);
+        return $menus;
 
     }
 
@@ -107,7 +105,7 @@ class MenuService
     public function getByDate(string $date)
     {
         return MenuSchedule::where('date_at', 'Like', "%$date%")
-            ->with('menu')
+            ->with([ 'menu' ])
             ->get();
     }
 

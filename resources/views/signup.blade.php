@@ -43,8 +43,8 @@ License: For each use you must have a valid license purchased only from above li
 	<!--begin::Body-->
 	<body id="kt_body" class="app-blank">
 
-    @if (session()->has('message'))
-        {{ dd(session()->all()) }}
+    @if (session()->has('response'))
+        {{-- {{ dd(session()->get('response')) }} --}}
     @endif
 
 		<!--begin::Theme mode setup on page load-->
@@ -71,7 +71,7 @@ License: For each use you must have a valid license purchased only from above li
 						<!--begin::Body-->
 						<div class="py-20">
 							<!--begin::Form-->
-							<form class="form w-100" novalidate="novalidate" id="form" action="/signin">
+							<form class="form w-100" novalidate="novalidate" id="form" action="{{ route('user.signup-handler') }}" method="post">
                             @csrf
 								<!--begin::Body-->
 								<div class="card-body">
@@ -111,7 +111,7 @@ License: For each use you must have a valid license purchased only from above li
                                     <div class="fv-row mb-7">
 										<!--begin::Password-->
                                         <div class="d-flex form-control">
-                                            <input required type="password" placeholder="Confirm Password" id="conPassword" name="password" autocomplete="off" data-kt-translate="sign-in-input-password" class="w-100" />
+                                            <input required type="password" placeholder="Confirm Password" id="conPassword" name="password_confirmation" autocomplete="off" data-kt-translate="sign-in-input-password" class="w-100" />
                                             <button type="button" onclick="showConPass()">
                                                 <img src="icons/show.svg" alt="" class="img-accent" id="conShow">
                                                 <img src="icons/hide.svg" alt="" class="img-accent d-none" id="conHide">

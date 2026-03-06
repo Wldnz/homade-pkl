@@ -41,6 +41,7 @@ Route::name('api')->group(function () {
     Route::get('/menus', [MenuController::class, 'menu'])->name('menu');
     Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
     Route::get('/menu-weekly', [MenuController::class, 'weekly'])->name('menu-weekly');
+     Route::get('/menu-date', [MenuController::class, 'getByDate'])->name('menu-date');
     Route::get('/packages', [MenuController::class, 'package'])->name('packages');
 
     Route::get('/achievements', [ProfileController::class, 'achievements'])->name('achievements');

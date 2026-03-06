@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailMenuResource;
+use App\Http\Resources\MenuByDateResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
+use App\Http\Resources\PaginationResource;
 use App\ResponseData;
 use App\Service\MenuService;
 use Exception;
@@ -29,20 +31,22 @@ class MenuController extends Controller
     public function menu(Request $request)
     {
         try {
-            
+
             $search = $request->query('search');
             $theme = $request->query('theme', '');
+            $category = $request->query('category');
             $page = (int) $request->query('page', 1);
             $limit = (int) $request->query('limit', 5);
 
             $menus = $this->menuService->all(
                 $search,
                 $theme,
+                $category,
                 $page,
                 $limit,
             );
 
-            if (empty($menus)) {
+            if ($menus->isEmpty()) {
                 return $this->responseData->create(
                     "Tidak dapat menemukan menu",
                     status_code: 404,
@@ -52,7 +56,10 @@ class MenuController extends Controller
 
             return $this->responseData->create(
                 'Berhasil Mendapatkan Menu - Menu',
-                MenuResource::collection($menus)
+                [
+                    'pagination' => new PaginationResource($menus),
+                    'items' => MenuResource::collection($menus)
+                ]
             );
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -64,26 +71,27 @@ class MenuController extends Controller
         }
     }
 
-    public function detail(string $id){
+    public function detail(string $id)
+    {
         // menu -> tema -> package -> relevantMenu
-        try{
+        try {
             $menu = $this->menuService->searchByID($id);
-            if(!$menu){
+            if (!$menu) {
                 return $this->responseData->create(
                     'Tidak dapat menemukan menu',
-                    status_code:404,
+                    status_code: 404,
                     status: 'warning'
                 );
             }
 
-            $categories_id = $menu->menu_categories->map(function($category){
+            $categories_id = $menu->menu_categories->map(function ($category) {
                 return $category->categories->id;
             });
 
-            
+
 
             $relevants = $this->menuService->getByRelevantCategoriesAndTheme(
-$categories_id,
+                $categories_id,
                 // $menu->theme->id,
                 $id
             );
@@ -98,11 +106,11 @@ $categories_id,
                 $menu,
             );
 
-        }catch(Exception $e){
-            if(str_starts_with($e->getMessage(), 'No query results for model')){
-                 return $this->responseData->create(
+        } catch (Exception $e) {
+            if (str_starts_with($e->getMessage(), 'No query results for model')) {
+                return $this->responseData->create(
                     'Tidak dapat menemukan menu',
-                    status_code:404,
+                    status_code: 404,
                     status: 'warning'
                 );
             }
@@ -110,18 +118,19 @@ $categories_id,
             return $this->responseData->create(
                 'Telah terjadi kesalahan pada server',
                 status: 'error',
-                status_code : 500
+                status_code: 500
             );
         }
     }
 
-    public function weekly(Request $request) : array | JsonResponse{
-        try{            
+    public function weekly(Request $request): array|JsonResponse
+    {
+        try {
             $week = (int) $request->query('week', 1);
 
             $menus = $this->menuService->getWeeklyMenus($week);
 
-            if($menus->isEmpty()){
+            if ($menus->isEmpty()) {
                 return $this->responseData->create(
                     'Tidak dapat menemukan menu mingguan',
                     status: 'warning',
@@ -134,30 +143,39 @@ $categories_id,
                 MenuScheduleResource::collection($menus)
             );
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             return $this->responseData->create(
                 'Telah Terjadi Kesalahan',
-                status:'error',
-                status_code:500,
+                status: 'error',
+                status_code: 500,
             );
         }
     }
 
-    private function getByDate(Request $request)
+    public function getByDate(Request $request)
     {
         try {
-            $date_at = $request->query('date_at', now());
 
-            if (empty($date_at)) {
+            $validator = Validator::make($request->all(), [
+                'date' => 'date|required'
+            ],[
+                'date' => 'pada request :attribute pastikan yang dimasukkan adalah sebuah tanggal',
+                'required' => ':attribute dibutuhkan'
+            ], [
+                'date' => 'Tanggal Menu Tertentu'
+            ]);
+
+            if ($validator->fails()) {
                 return $this->responseData->create(
                     'Pastikan tanggal yang dimasukkan tidak kosong',
+                    errors: $validator->errors()->toArray(),
                     status: 'warning',
                     status_code: 422
                 );
             }
 
-            $menus = $this->menuService->getByDate($date_at);
+            $menus = $this->menuService->getByDate($request->date);
 
             if ($menus->isEmpty()) {
                 return $this->responseData->create(
@@ -169,7 +187,8 @@ $categories_id,
 
             return $this->responseData->create(
                 'Berhasil mendapatkan menu berdasarkan tanggal',
-                MenuScheduleResource::collection($menus)
+                MenuByDateResource::collection($menus)
+                // $menus
             );
 
         } catch (Exception $e) {

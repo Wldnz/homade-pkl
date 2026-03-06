@@ -36,15 +36,14 @@ class UserAddressController extends Controller
                     'Tidak dapat menemukan alamat pengguna',
                     status: 'warning',
                     status_code: 404,
-                    isJson: false
+                    isJson: false,
                 );
                 return view('profile.address', compact('response'));
             }
 
             $response = $this->responseData->create(
                 'Berhasil menemukan alamat pengguna',
-                UserAddressResource::collection($address),
-                isJson: false
+                UserAddressResource::collection($address)
             );
 
             return view('profile.address', compact('response'));
@@ -54,8 +53,7 @@ class UserAddressController extends Controller
             $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
-                status_code: 500,
-                isJson: false,
+                status_code: 500
             );
             return view('profile.address', compact('response'));
         }
@@ -73,21 +71,16 @@ class UserAddressController extends Controller
                     status_code: 404,
                     isJson: false,
                 );
-                return redirect()->route('user.user-address')->with(compact('response'));
+                return view('profile.detail-address', compact('response'));
             }
 
             $response = $this->responseData->create(
                 'Berhasil Menemukan Detail Alamat Email',
-                [
-                    'target_address_id' => $address->id,
-                    'form_action' => 'show',
-                    'show_form' => true,
-                    'address' => new DetailMenuResource($address)
-                ],
+                new DetailUserAddressResource($address),
                 isJson: false
             );
 
-            return redirect()->route('user.user-address')->with(compact('response'));
+            return view('profile.detail-address', compact('response'));
 
         }catch(Exception $e){
             Log::error($e->getMessage());
@@ -97,7 +90,7 @@ class UserAddressController extends Controller
                 status_code: 500,
                 isJson:false
             );
-            return redirect()->route('user.user-address')->with(compact('response'));
+            return view('profile.detail-address', compact('response'));
         }
     }
 

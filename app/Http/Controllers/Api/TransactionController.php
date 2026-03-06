@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailTransactionResource;
+use App\Http\Resources\PaginationResource;
 use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
@@ -61,7 +62,7 @@ class TransactionController extends Controller
                 $delivery_at
             );
             
-            if(count($transactions) == 0){
+            if($transactions->isEmpty()){
                 return $this->responseData->create(
                     'Tidak dapat menemukan transaksi atau kamu belum memiliki transaksi!',
                     status: 'warning',
@@ -72,7 +73,10 @@ class TransactionController extends Controller
             // $transactions = TransactionResource::collection($transactions);
             return $this->responseData->create(
                 'Successfully Getting Data!',
-                $this->formatPaginationData($transactions),
+                [
+                    'pagination' => new PaginationResource($transactions),
+                    'items' => TransactionResource::collection($transactions)
+                ],
             );
 
             

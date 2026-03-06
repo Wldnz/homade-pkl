@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\SuccessfullyChangedPassword;
+use App\Mail\SuccessfullyRegistered;
 use App\Models\User;
 use App\ResponseData;
 use App\Service\UserService;
@@ -47,25 +48,35 @@ class AuthController extends Controller
             $credential = Validator::make($request->all(), [
                 'email' => 'required|email|min:8',
                 'password' => 'required|min:8'
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'email' => ':attribute harus berupa email yang valid!',
+                'min' => ':attribute minimal harus memiliki :min karater'
+            ], [
+                'email' => 'Alamat Email',
+                'password' => 'Kata Sandi'
             ]);
-
-            $data = [
-                'email' => $request->email ?? '',
-                'password' => $request->password ?? ''
-            ];
 
             if ($credential->fails()) {
                 $response = $this->responseData->create(
                     'Data Yang Dimasukkan Belum Valid Nih!',
-                    [
-                        'errors' => $credential->errors(),
-                        'input' => $data
-                    ],
+                    errors: $credential->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                    isJson:false
+                );
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            if ($credential->fails()) {
+                $response = $this->responseData->create(
+                    'Data Yang Dimasukkan Belum Valid Nih!',
+                    errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
                     isJson: false
                 );
-                return redirect()->back()->with(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $user = User::where('email', $request->email)->first();
@@ -73,26 +84,22 @@ class AuthController extends Controller
             if (!$user) {
                 $response = $this->responseData->create(
                     'Tidak dapat menemukan email',
-                    $data,
                     status: 'warning',
                     status_code: 404,
                     isJson: false
                 );
-                return redirect()->back()->with(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             if (!Hash::check($request->password, $user->password)) {
                 $response = $this->responseData->create(
                     'Password Yang Anda Masukkan Tidak Valid!',
-                    $data,
                     status: 'warning',
                     status_code: 404,
                     isJson: false
                 );
-                return redirect()->back()->with(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
-
-            Log::alert('login sebagai' . $user->first_name);
 
             $this->userService->login($user);
             session()->regenerate();
@@ -106,7 +113,7 @@ class AuthController extends Controller
                 status_code: 500,
                 isJson: false
             );
-            return redirect()->back()->with(compact('response'));
+            return redirect()->back()->withInput()->with(compact('response'));
         }
     }
 
@@ -115,30 +122,37 @@ class AuthController extends Controller
         try {
 
             $credential = Validator::make($request->all(), [
-                'first_name' => 'required|min:3',
+                'first_name' => 'required|min:2',
                 'email' => 'required|min:8|email',
-                'password' => 'required|min:8'
+                'password' => [
+                    'required',
+                    \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols(),
+                ],
+                'password_confirmation' => 'required|same:password'
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'email' => ':attribute harus berupa email yang valid!',
+                'min' => ':attribute minimal harus memiliki :min karater',
+                'same' => ':attribute harus sama dengan :other',
+                'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
+                'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka'
+            ], [
+                'first_name' => 'Nama Depan',
+                'email' => 'Alamat Email',
+                'password' => 'Kata Sandi',
+                'password_confirmation' => 'Konfirmasi Kata Sandi'
             ]);
 
-            $data = [
-                'first_name' => $request->first_name ?? '',
-                'last_name' => $request->last_name ?? '',
-                'email' => $request->email ?? '',
-                'password' => $request->password ?? ''
-            ];
-
             if ($credential->fails()) {
-                $response = $this->responseData->create(
+                $response =  $this->responseData->create(
                     'Data yang dimasukkan belum valid!',
-                    [
-                        'errors' => $credential->errors(),
-                        'input' => $data
-                    ],
+                    errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
-                    isJson: false
+                    isJson:false
                 );
-                return redirect()->back()->with(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $user = $this->userService->getByEmail($request->email);
@@ -146,15 +160,12 @@ class AuthController extends Controller
             if ($user) {
                 $response = $this->responseData->create(
                     'Email sudah terdaftar!',
-                    [
-                        'errors' => $credential->errors(),
-                        'input' => $data
-                    ],
+                    errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 403,
                     isJson: false
                 );
-                return redirect()->back()->with(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $user = $this->userService->save([
@@ -177,10 +188,12 @@ class AuthController extends Controller
                 isJson: false,
             );
 
+            Mail::to($user->email)->send(new SuccessfullyRegistered($user));
+
             $this->userService->login($user);
             session()->regenerate();
 
-            return redirect()->to($request->query('redirect_url', '/'))->with($response);
+            return redirect()->to($request->query('redirect_url', '/'))->with(compact('response'));
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -190,7 +203,7 @@ class AuthController extends Controller
                 status_code: 500,
                 isJson: false
             );
-            return redirect()->back()->with(compact('response'));
+            return redirect()->back()->withInput()->with(compact('response'));
         }
     }
 
