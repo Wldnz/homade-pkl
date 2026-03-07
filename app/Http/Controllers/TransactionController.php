@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\DetailTransactionResource;
+use App\Http\Resources\PaginationResource;
 use App\Http\Resources\TransactionResource;
 use App\ResponseData;
 use App\Service\TransactionService;
@@ -46,23 +47,26 @@ class TransactionController extends Controller
                 $delivery_at
             );
 
-            if (count($transactions) == 0) {
+            if ($transactions->isEmpty()) {
                 $response =  $this->responseData->create(
                     'Tidak dapat menemukan transaksi atau kamu belum memiliki transaksi!',
                     status: 'warning',
                     status_code: 404,
                     isJson:false
                 );
-                return view('profile.orders', compact('response'));
+                return view('profile.order.index', compact('response'));
             }
 
             $response = $this->responseData->create(
                 'Successfully Getting Data!',
-                TransactionResource::collection($transactions),
+                [
+                    'pagination' =>  new PaginationResource($transactions),
+                    'orders' => TransactionResource::collection($transactions)
+                ],
                 isJson:false
             );
 
-            return view('profile.orders', compact('response'));
+            return view('profile.order.index', compact('response'));
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -72,7 +76,7 @@ class TransactionController extends Controller
                 status_code: 500,
                 isJson:false
             );
-            return view('profile.orders', compact('response'));
+            return view('profile.order.index', compact('response'));
         }
     }
 
@@ -88,7 +92,7 @@ class TransactionController extends Controller
                     status_code: 404,
                     isJson:false
                 );
-                return view('profile.detail-order', compact('response'));
+                return view('profile.order.detail', compact('response'));
             }
 
             $response = $this->responseData->create(
@@ -97,7 +101,7 @@ class TransactionController extends Controller
                 isJson:false
             );
 
-            return view('profile.detail-order', compact('response'));
+            return view('profile.order.detail', compact('response'));
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -107,7 +111,7 @@ class TransactionController extends Controller
                 status_code: 500,
                 isJson:false
             );
-            return view('profile.detail-order', compact('response'));
+            return view('profile.order.detail', compact('response'));
         }
     }
 

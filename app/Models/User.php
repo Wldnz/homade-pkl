@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use App\UserRole;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -58,6 +59,10 @@ class User extends Authenticatable implements JWTSubject
     public function orders()
     {
         return $this->hasMany(Transaction::class, 'id_user');
+    }
+
+    public function isAdminOrOwner(){
+        return in_array($this->role, [ UserRole::ADMIN, UserRole::OWNER ]);
     }
 
     /**

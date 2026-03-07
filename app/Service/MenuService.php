@@ -1,48 +1,50 @@
 <?php
+
 namespace App\Service;
+
 use App\Models\Menu;
 use App\Models\MenuSchedule;
-use Log;
-use Psr\Log\LogLevel;
 
 class MenuService
 {
-
     public function all(
-        string|null $search,
-        string|null $theme,
+        ?string $search,
+        ?string $theme,
+        ?string $category,
         int $page,
-        int $limit,
-        bool|null $isActive = true,
+        int $limit = 10,
+        ?bool $isActive = true,
     ) {
 
         $menus = Menu::with(['menu_categories', 'theme'])
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
             })->where('is_active', $isActive)
-            ->limit($limit)
-            ->offset($page - 1)
-            ->get();
+            ->when($theme, function ($query, $theme) {
+                return $query->whereHas('theme', function ($q) use ($theme) {
+                    return $q->where('name', $theme);
+                });
+            })
+            ->when($category, function ($query, $category) {
+                return $query->whereHas('menu_categories', function ($q) use ($category) {
+                    return $q->whereHas('categories', function ($qc) use ($category) {
+                        return $qc->where('name', $category);
+                    });
+                });
+            })
+            ->paginate($limit);
 
-        $new_menus = [];
-
-        if ($theme) {
-            foreach ($menus as $menu) {
-                if ($menu->theme->name === $theme) {
-                    array_push($new_menus, $menu);
-                }
-            }
-        } else {
-            $new_menus = $menus;
-        }
-
-        return $new_menus;
+        return $menus;
 
     }
 
     public function getWeeklyPopuler()
     {
         // ini dapet bisa dikategorikan populer dari mana?
+        // sementara gini dlu
+        return $this->all(
+            null, null, null, 1, 3
+        );
     }
 
     public function searchByID(string|int $id)
@@ -72,12 +74,13 @@ class MenuService
     ) {
         // limit tiga aja kali ya
         // berdasarkan tema dan kategori
-        $menus = Menu::whereHas('menu_categories', fn($query) => $query->whereIn('id_category', $categories_id))
+        $menus = Menu::whereHas('menu_categories', fn ($query) => $query->whereIn('id_category', $categories_id))
             ->with([
-                'menu_categories' => fn($query) => $query->whereIn('id_category', $categories_id)->limit(3),
-                'theme'
+                'menu_categories' => fn ($query) => $query->whereIn('id_category', $categories_id)->limit(3),
+                'theme',
             ])
             ->whereNot('id', $menu_id)->get();
+
         return $menus;
     }
 
@@ -98,24 +101,23 @@ class MenuService
                 'date' => $date,
                 'menus' => $item->map(function ($schedule) {
                     return $schedule->menu;
-                })
+                }),
             ];
         })->values();
+
         return $schedules;
     }
 
     public function getByDate(string $date)
     {
         return MenuSchedule::where('date_at', 'Like', "%$date%")
-            ->with('menu')
+            ->with(['menu'])
             ->get();
     }
 
     public function usingFilter(
-        string|null $date
+        ?string $date
     ) {
-        // return 
+        // return
     }
-
-
 }

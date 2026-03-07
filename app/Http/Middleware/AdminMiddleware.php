@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ManagementMiddleware
+class AdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,17 +16,9 @@ class ManagementMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // ini enaknya langsung pentalin ke landing - page atau ke login?
-        // sementara ke landing - page langsung aja ya
-
-        if(auth()->check()){
-            $user = auth()->user();
-            if($user->role == UserRole::OWNER && $user->role == UserRole::ADMIN){
-                return $next($request);
-            }
+        if(auth()->user()->isAdminOrOwner()){
+            return $next($request);
         }
-
         return redirect()->route('user.home');
-
     }
 }

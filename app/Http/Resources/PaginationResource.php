@@ -17,16 +17,8 @@ class PaginationResource extends JsonResource
     {
         return [
             'current_page' => $this->currentPage(),
-            'first_page' => $this->from(),
-            'next_page' => $this->to(),
-            'last_page' => $this->lastPage(),
             'per_page' => $this->perPage(),
-            'url' => [
-                // 'first_page' =>  $this->firstPageUrl,
-                'last_page' =>  $this->lastPageUrl(),
-                'next_page' =>  $this->nextPageUrl(),
-                'previus_page' => $this->previousPageUrl(),
-            ],
+            'last_page' => $this->lastPage(),
             'total' => $this->total(),
         ];
     }

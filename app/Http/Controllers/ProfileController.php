@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PaginationResource;
 use App\ResponseData;
 use App\Service\AchievementService;
 use App\Service\PartnerService;
@@ -23,9 +24,7 @@ class ProfileController extends Controller
     }
     
     public function profile(){
-
         try{
-
             $achievements = $this->achievementService->all();
 
             $partners = $this->partnerService->all();
@@ -34,7 +33,10 @@ class ProfileController extends Controller
                 'Succesfully getting data',
                 data : [
                     'achievements' => $achievements,
-                    'partners' => $partners
+                    'partners' => [
+                        'pagination' => new PaginationResource($partners),
+                        'items' => $partners
+                    ]
                 ],
                 isJson:false
             );
