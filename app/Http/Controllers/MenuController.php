@@ -3,35 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\DetailMenuResource;
+use App\Http\Resources\MenuByDateResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
 use App\Http\Resources\PaginationResource;
+use App\Http\Resources\SelectMenuResource;
 use App\ResponseData;
 use App\Service\ContactService;
 use App\Service\MenuService;
+use App\TransactionCategory;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Log;
 
 class MenuController extends Controller
 {
-    
+
     private MenuService $menuService;
 
     private ResponseData $responseData;
 
     private ContactService $contactService;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->menuService = new MenuService();
         $this->responseData = new ResponseData();
         $this->contactService = new ContactService();
     }
 
-     public function all(Request $request)
+    public function all(Request $request)
     {
         try {
-            
+
             $search = $request->query('search', '');
             $theme = $request->query('theme');
             $category = $request->query('category');
@@ -42,7 +47,6 @@ class MenuController extends Controller
                 $search,
                 $theme,
                 $category,
-                $page,
                 $limit,
             );
 
@@ -51,7 +55,7 @@ class MenuController extends Controller
                     "Tidak dapat menemukan menu",
                     status_code: 404,
                     status: "warning",
-                    isJson:false
+                    isJson: false
                 );
                 return view('menus', compact('response'));
             }
@@ -62,7 +66,7 @@ class MenuController extends Controller
                     'pagination' => new PaginationResource($menus),
                     'items' => MenuResource::collection($menus),
                 ],
-                isJson:false
+                isJson: false
             );
 
             return view('menus', compact('response'));
@@ -73,33 +77,34 @@ class MenuController extends Controller
                 'Telah terjadi kesalahan',
                 status_code: 500,
                 status: 'error',
-                isJson:false
+                isJson: false
             );
             return view('menus', compact('response'));
         }
     }
 
-    public function detail(string $id){
-        try{
+    public function detail(string $id)
+    {
+        try {
 
             $menu = $this->menuService->searchByID($id);
 
-            if(!$menu){
+            if (!$menu) {
                 $response = $this->responseData->create(
                     'Tidak dapat menemukan menu',
-                    status_code:404,
+                    status_code: 404,
                     status: 'warning',
-                    isJson:false
+                    isJson: false
                 );
                 return view('detail-menu', compact('response'));
             }
 
-            $categories_id = $menu->menu_categories->map(function($category){
+            $categories_id = $menu->menu_categories->map(function ($category) {
                 return $category->categories->id;
             });
 
             $relevants = $this->menuService->getByRelevantCategoriesAndTheme(
-$categories_id,
+                $categories_id,
                 $id
             );
 
@@ -108,21 +113,21 @@ $categories_id,
                 'relevants' => $relevants
             ]);
 
-            $response =  $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil mendapatkan menu',
                 $menu,
-                isJson:false
+                isJson: false
             );
 
             return view('detail-menu', compact('response'));
 
-        }catch(Exception $e){
-            if(str_starts_with($e->getMessage(), 'No query results for model')){
+        } catch (Exception $e) {
+            if (str_starts_with($e->getMessage(), 'No query results for model')) {
                 $response = $this->responseData->create(
                     'Tidak dapat menemukan menu',
-                    status_code:404,
+                    status_code: 404,
                     status: 'warning',
-                    isJson:false
+                    isJson: false
                 );
                 return view('detail-menu', compact('response'));
             }
@@ -130,25 +135,26 @@ $categories_id,
             $response = $this->responseData->create(
                 'Telah terjadi kesalahan pada server',
                 status: 'error',
-                status_code : 500,
-                isJson:false
+                status_code: 500,
+                isJson: false
             );
             return view('detail-menu', compact('response'));
         }
     }
 
-    public function weekly(Request $request) {
-        try{            
+    public function weekly(Request $request)
+    {
+        try {
             $week = (int) $request->query('week', 1);
 
             $menus = $this->menuService->getWeeklyMenus($week);
 
-            if($menus->isEmpty()){
-                $response =  $this->responseData->create(
+            if ($menus->isEmpty()) {
+                $response = $this->responseData->create(
                     'Tidak dapat menemukan menu mingguan',
                     status: 'warning',
                     status_code: 404,
-                    isJson:false
+                    isJson: false
                 );
                 return view('schedule', compact('response'));
             }
@@ -156,20 +162,125 @@ $categories_id,
             $response = $this->responseData->create(
                 'Berhasil mendapatkan menu mingguan',
                 MenuScheduleResource::collection($menus),
-                isJson:false
+                isJson: false
             );
 
             return view('schedule', compact('response'));
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan',
-                status:'error',
-                status_code:500,
-                isJson:false
+                status: 'error',
+                status_code: 500,
+                isJson: false
             );
             return view('schedule', compact('response'));
+        }
+    }
+
+    public function selectWeekly(Request $request)
+    {
+        try {
+
+            $date_at = $request->query('date_at', now()->addDays(1));
+            
+            $date_at = Carbon::parse($date_at);
+
+            $menus = $this->menuService->getByDate($date_at);
+
+            if ($menus->isEmpty()) {
+               $response = $this->responseData->create(
+                    'Tidak dapat menemukan menu mingguan pada tanggal ini',
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: true
+                );
+                return view('order.select-menu-weekly', compact('response'));
+            }
+
+            // kurang jam aja
+            if ($date_at < now()->addDays(1)) {
+                $response = $this->responseData->create(
+                    'Anda sudah tidak bisa menu mingguan pada tanggal ini, dan jika ingin memesan minimal 50 box',
+                    [
+                        'date' => $date_at,
+                        'category' => TransactionCategory::PRE_ORDER,
+                        'items' => SelectMenuResource::collection($menus)
+                    ],
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: true
+                );
+                return view('order.select-menu-weekly', compact('response'));
+            }
+
+            // validasi jam 3 sore
+
+            return $response = $this->responseData->create(
+                'Berhasil Menemukan Menu Mingguan Pada Tanggal Ini',
+                [
+                    'date' => $date_at,
+                    'category' => TransactionCategory::ORDER,
+                    'items' => SelectMenuResource::collection($menus)
+                ],
+                isJson: false,
+            );
+
+            return view('order.select-menu-weekly', compact('response'));
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+                isJson: false,
+            );
+            return view('order.select-menu-weekly', compact('response'));
+        }
+    }
+
+    public function select(Request $request)
+    {
+        try {
+
+            $search = $request->query('search');
+            $category = $request->query('category'); //category menu
+            // $limit = $request->query('limit', ); 
+
+            $menus = $this->menuService->menuNonWeekly($search, category: $category);
+
+            if ($menus->isEmpty()) {
+                $response = $this->responseData->create(
+                    'Tidak Dapat Menemukan Menu Menu',
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false,
+                );
+                return view('order.select-menu', compact('response'));
+            }
+
+            $response = $this->responseData->create(
+                'Berhasil menemukan menu',
+                [
+                    'category' => TransactionCategory::PRE_ORDER,
+                    'pagination' => new PaginationResource(resource: $menus),
+                    'items' => SelectMenuResource::collection($menus)->toArray($request),
+                ],
+                isJson: false,
+            );
+
+            return view('order.select-menu', compact('response'));
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+            return view('order.select-menu', compact('response'));
         }
     }
 

@@ -3,6 +3,9 @@
 namespace App\Service;
 
 use App\Models\Transaction;
+use App\Models\TransactionAddress;
+use App\Models\TransactionOrder;
+use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {
@@ -15,13 +18,13 @@ class TransactionService
     }
 
     public function byCustomer(
-        string | null $search,
-        string | null $category,
-        string | null $sort_by,
-        string | null $status,
-        string | null $status_delivery,
+        string|null $search,
+        string|null $category,
+        string|null $sort_by,
+        string|null $status,
+        string|null $status_delivery,
         int $limit = 3,
-        string | null $delivery_at
+        string|null $delivery_at
     ) {
         return Transaction::where('id_user', auth()->user()->id)
             ->with('orders')
@@ -43,14 +46,14 @@ class TransactionService
             })
 
             ->when($delivery_at, function ($query, $delivery_at) {
-                return $query->where('delivery_at','LIKE', "%$delivery_at%");
+                return $query->where('delivery_at', 'LIKE', "%$delivery_at%");
             })
 
-            ->when($sort_by, function($query, $sort_by){
+            ->when($sort_by, function ($query, $sort_by) {
                 return $this->sort_by($query, $sort_by);
             })
 
-            ->when($category, function($query, $category){
+            ->when($category, function ($query, $category) {
                 return $query->where('category', $category);
             })->paginate($limit);
     }
@@ -69,9 +72,41 @@ class TransactionService
             ->first();
     }
 
-    public function create()
+    public function create(array $data)
     {
-        
+        return DB::transaction(function () use ($data) {
+            $data['transaction']['created_at'] = now();
+            $data['transaction']['updated_at'] = now();
+            $createdTransaciton = Transaction::create($data['transaction']);
+            foreach ($data['items'] as $item) {
+                foreach ($item->prices as $price) {
+                    TransactionOrder::create([
+                        'id_transaction' => $createdTransaciton->id,
+                        'id_menu_price' => $price->id,
+                        'id_menu' => $item->id,
+                        'total_price' => $price->quantity * $price->price,
+                        'price_at_purchase' => $price->price,
+                        'quantity' =>  $price->quantity,
+                        'note' =>  $price->note ?? '',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+            TransactionAddress::create([
+                'id_transaction' => $createdTransaciton->id,
+                'received_name' => $data['address']->received_name,
+                'phone' => $data['address']->phone,
+                'label' => $data['address']->label,
+                'address' => $data['address']->address,
+                'note' => $data['address']->note,
+                'longitude' => $data['address']->longitude,
+                'latitude' => $data['address']->latitude,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            return $createdTransaciton;
+        });
     }
 
     public function cancell()
@@ -86,7 +121,7 @@ class TransactionService
     ) {
         // harga termurah, termahal, dibuat terlama, dibuat skrng
         switch ($sort_by) {
-            case 'lowest_price': 
+            case 'lowest_price':
                 return $query->orderBy('total_price', 'desc');
             case 'highest_price':
                 return $query->orderBy('total_price');

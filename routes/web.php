@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\WebMiddleware;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Support\Facades\Route;
@@ -17,7 +18,11 @@ Route::name('user.')->group(function () {
     Route::get('/menus', [MenuController::class, 'all'])->name('menus');
     Route::get('/menus/{id}', [MenuController::class, 'detail'])->name('detail-menu');
     Route::get('/schedule', [MenuController::class, 'weekly'])->name('schedules');
+
+
     Route::get('/select-menu', [MenuController::class, 'select'])->name('select-menu');
+    Route::get('/select-menu-weekly', [MenuController::class, 'selectWeekly'])->name('select-menu-weekly');
+
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
     // buat autentikasi disini banh
@@ -49,16 +54,24 @@ Route::name('user.')->group(function () {
             Route::get('/orders', [TransactionController::class, 'orders'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detail'])->name('detail-order');
         });
-        Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
+
+        Route::post('/checkout', [TransactionController::class, 'checkout'])->name('checkout');
+
+        Route::get('/signout', [AuthController::class, 'signout'])->name('signout');
     });
 });
 
 // tambahin role juga untuk middlewwarenya
-Route::name('admin.')->prefix('admin')->group(function () {
+Route::middleware([
+    WebMiddleware::class,
+    AdminMiddleware::class
+])->name('admin.')->prefix('admin')->group(function () {
 
+    Route::withoutMiddleware([ WebMiddleware::class, AdminMiddleware::class ])->group(function(){
+        Route::get('/signin', [\App\Http\Controllers\Admin\AuthController::class, 'signin'])->name('signin');
+        Route::post('/signin', [ \App\Http\Controllers\Admin\AuthController::class, 'signinHandler' ])->name('signin-handler');
+    });
 
-    Route::get('/signin', [\App\Http\Controllers\Admin\AuthController::class, 'signin'])->name('signin');
-    
     Route::get('/dashboard', [\App\Http\Controllers\Admin\MainController::class, 'index'])->name('dashboard');
 
     // theme
@@ -86,19 +99,11 @@ Route::name('admin.')->prefix('admin')->group(function () {
     Route::get('/accounts/{id}', [\App\Http\Controllers\Admin\AccountController::class, 'detail'])->name('detail-account');
     Route::get('/accounts', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('add-account');
     // setting
-
-    // Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    // Route::get('/menus', [AdminController::class, 'menus'])->name('menus');
-    // Route::get('/schedules', [AdminController::class, 'schedules'])->name('schedules');
-    // Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
-    // Route::get('/orders/{id}', [AdminController::class, 'detailOrder'])->name('detail-order');
-})->middleware([
-    WebMiddleware::class
-]);
+});
 
 
-Route::get('/testing-notificiation', function (){
+Route::get('/testing-notificiation', function () {
     $token = 'asaswasas';
     return (new ResetPasswordNotification($token))
-    ->toMail(auth()->user());
+        ->toMail(auth()->user());
 })->middleware(WebMiddleware::class);

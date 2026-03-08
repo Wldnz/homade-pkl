@@ -6,6 +6,7 @@ use App\Models\UserAddress;
 use App\UserRole;
 use Auth;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Log;
 
 class UserService
@@ -18,14 +19,12 @@ class UserService
 
     public function getByEmail(
         string $email,
-        bool $isManagement,
+        ?bool $isManagement = false, 
     ) {
-        return User::where('email', $email)
-        ->when($isManagement, function($query, $isManagement){
-            return $query->where('role', UserRole::OWNER)
-            ->orWhere('role', UserRole::ADMIN);
-        })
-        ->first();
+        $user = User::where('email', $email)->first();
+        if ($isManagement && $user && !in_array($user->role, [ UserRole::ADMIN, UserRole::CUSTOMER ])) return null;
+
+        return $user;
     }
 
     public function save(array $data)

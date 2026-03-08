@@ -9,25 +9,33 @@ class Menu extends Model
 {
     use HasUuids;
 
-    public function menu_categories(){
+    public function menu_categories()
+    {
         return $this->hasMany(MenuCategory::class, foreignKey: 'id_menu')
-        ->with("categories")
-        ->select(['id', 'id_menu', 'id_category']);
+            ->with('categories')
+            ->select(['id', 'id_menu', 'id_category']);
     }
 
-    public function theme(){
+    public function theme()
+    {
         return $this->belongsTo(Theme::class, 'id_theme')
-        ->select(['id', 'name']);
+            ->select(['id', 'name']);
     }
 
-    public function prices(){
+    public function prices()
+    {
         return $this->hasMany(MenuPrice::class, 'id_menu')
-        ->with('package')
-        ->select([ 'id', 'id_menu', 'id_package', 'price' ]);
+            ->with('package')
+            ->select(['id', 'id_menu', 'id_package', 'price']);
     }
 
-    public function schedule(){
+    public function schedule()
+    {
         return $this->hasMany(MenuSchedule::class, 'id_menu');
     }
 
+    public function weekly(){
+        return $this->hasMany(MenuSchedule::class, 'id_menu')
+        ->where('date_at', '>' , now());
+    }
 }

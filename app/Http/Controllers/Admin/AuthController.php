@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\ResponseData;
 use App\Service\UserService;
 use Exception;
+use Hash;
 use Illuminate\Http\Request;
 use Log;
 use Validator;
@@ -46,19 +47,21 @@ class AuthController extends Controller
                     status_code: 422,
                     isJson: false
                 );
-                return redirect()->back()->withInput(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $user = $this->userService->getByEmail($request->email, true);
 
-            if(!$user){
+            // return $user ? $user->password : 'a';
+
+            if(!$user || !Hash::check($request->password, $user->password)){
                 $response =  $this->responseData->create(
-                    'Email tidak terdaftar!',
+                    'Tidak dapat menemukan email atau mencocokan password!',
                     status: 'warning',
                     status_code: 404,
                     isJson: false,
                 );
-                return redirect()->back()->withInput(compact('response'));
+                return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $this->userService->login($user);
@@ -69,7 +72,7 @@ class AuthController extends Controller
             );
 
             // langsung ke halaman sebelumnya atau ke dashboard?
-            redirect()->route('admin.dashboard')->with(compact('response'));
+            return redirect()->route('admin.dashboard')->with(compact('response'));
 
         }catch(Exception $e){
             Log::error($e->getMessage());
