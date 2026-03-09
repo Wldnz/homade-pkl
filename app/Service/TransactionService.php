@@ -5,16 +5,59 @@ namespace App\Service;
 use App\Models\Transaction;
 use App\Models\TransactionAddress;
 use App\Models\TransactionOrder;
+use App\Models\TransactionPaymentProof;
+use App\RefundStatus;
+use App\StatusDelivery;
+use App\StatusTransaction;
+use App\TransactionPaymentProofStatus;
+use App\Utils\CloudinaryClient;
+use Cloudinary\Cloudinary;
+use Exception;
+use File;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\TextUI\XmlConfiguration\FailedSchemaDetectionResult;
 
 class TransactionService
 {
 
     // note buat sekarang... semua transaksi minimal mengambil satu gambar menu makanan dari order yng sudha ada
 
-    public function all()
-    {
-        return Transaction::all();
+    public function all(
+        string|null $search,
+        string|null $category,
+        string|null $status,
+        string|null $status_delivery,
+        int $limit = 8,
+        string|null $delivery_at
+    ) {
+        return Transaction::with('user')
+            ->when($search, function ($query, $search) {
+                return $query->whereHas('orders.menu_price.menu', function ($q) use ($search) {
+                    $search = strtolower("%$search%");
+                    return $q->whereRaw('LOWER(name) LIKE ?', [$search]);
+                });
+                // satu lagi, check kalo dia berdasarkan id
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+
+            ->when($status_delivery, function ($query, $status) {
+                return $query->where('status_delivery', $status);
+            })
+
+            ->when($delivery_at, function ($query, $delivery_at) {
+                return $query->where('delivery_at', 'LIKE', "%$delivery_at%");
+            })
+
+            // ->when($sort_by, function ($query, $sort_by) {
+            //     return $this->sort_by($query, $sort_by);
+            // })
+
+            ->when($category, function ($query, $category) {
+                return $query->where('category', $category);
+            })->paginate($limit);
     }
 
     public function byCustomer(
@@ -58,15 +101,18 @@ class TransactionService
             })->paginate($limit);
     }
 
-    public function detail(string $id)
-    {
-        return Transaction::where([
-            'id' => $id,
-            'id_user' => auth()->user()->id,
-        ])
+    public function detail(
+        string $id,
+        bool $isCustomer = true,
+    ) {
+        return Transaction::where('id', $id)
+            ->when($isCustomer, function ($query) {
+                return $query->where('id_user', auth()->user()->id);
+            })
             ->with([
                 'orders',
                 'address',
+                'user',
                 'payment_proof'
             ])
             ->first();
@@ -86,8 +132,8 @@ class TransactionService
                         'id_menu' => $item->id,
                         'total_price' => $price->quantity * $price->price,
                         'price_at_purchase' => $price->price,
-                        'quantity' =>  $price->quantity,
-                        'note' =>  $price->note ?? '',
+                        'quantity' => $price->quantity,
+                        'note' => $price->note ?? '',
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
@@ -109,10 +155,276 @@ class TransactionService
         });
     }
 
-    public function cancell()
+    public function uploudPaymentProof(
+        Transaction $transaction,
+        UploadedFile|null $image,
+    ){
+
+        if(!$image){
+            return [
+                'is_success' => false,
+                'message' => 'Membutuhkan gambar untuk menguploud bukti pembayaran!'
+            ];
+        }
+
+        // validasi ini udh nge carry wkwk
+        if(!$this->isAcceptableStatusForChangingShippingCost($transaction->status) || $transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)){
+            return [
+                'is_success' => false,
+                'message' => 'Maaf, saat ini kamu tidak memenuhi syarat untuk menguploud ulang kembali bukti pembayaran'
+            ];
+        }
+
+        $cloudinary = new CloudinaryClient();
+        // uploud gambar disini!
+        $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
+        if(!$uplouded){
+            return [
+                'is_success' => false,
+                'message' => 'Tidak berhasil dalam photo mengunggah bukti pembayaran'
+            ];
+        }
+        // ganti gambar
+        return DB::transaction(function()use($transaction, $uplouded, $cloudinary){
+
+            if($transaction->payment_proof){
+                $old_public_id = $transaction->payment_proof->public_id;
+                $transaction->payment_proof->url = $uplouded['secure_url'];
+                $transaction->payment_proof->status = TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION;
+                $transaction->payment_proof->public_id = $uplouded['public_id'];
+                $transaction->payment_proof->save();
+                // hapus gambar
+                $cloudinary->deleteThePaymentProofImage($old_public_id);
+                return [
+                    'is_success' => true,
+                    'is_created' => false,
+                    'message' => 'Berhasil dalam menguploud ulang bukti pembayaran'
+                ];
+            }
+
+            TransactionPaymentProof::create([
+                'id_transaction' => $transaction->id,
+                'public_id' => $uplouded['public_id'],
+                'url' => $uplouded['url'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'is_success' => true,
+                'is_created' => true,
+                'message' => 'Berhasil dalam menguploud bukti pembayaran',
+            ];
+
+        });
+        // hapus gambar jika memiliki bukti pembayaran dengan status gagal
+
+        
+    }
+    public function changeShippingCost(
+        Transaction $transaction,
+        int $shipping_cost
+    ) {
+        return DB::transaction(function () use ($transaction, $shipping_cost) {
+            // cek terlebih dahulu statusnya!
+            // waiting_for_invoice => aman
+            $isAcceptableStatus = $this->isAcceptableStatusForChangingShippingCost($transaction->status);
+            // status_bukti_pembayaran yang aman itu => rejected,
+            if ($transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof) || !$isAcceptableStatus) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak bisa merubah ongkos kirim dikarenakan Status Transaksi Sudah Bukan Menunggu Invoice Dan Status Bukti Pembayaran Bukan Ditolak',
+                ];
+            }
+
+            $transaction->shipping_cost = $shipping_cost;
+            $transaction->total_price = $transaction->subtotal + $shipping_cost;
+            $transaction->status = StatusTransaction::PENDING;
+            $transaction->save();
+
+            return [
+                'is_success' => true,
+                'message' => 'Berhasil Merubah Ongkos Kirim & Total Harga Transaksi'
+            ];
+        });
+    }
+
+    public function rejectTransaction(
+        Transaction $transaction,
+        string $reason,
+        bool $isManagement = true,
+    ) {
+        return DB::transaction(function () use ($transaction, $reason, $isManagement) {
+            // apakah status transaksi masih waiting_for_invoice?
+            if (!in_array(StatusTransaction::from((string) $transaction->status), [StatusTransaction::WAITING_FOR_INVOICE, StatusTransaction::PENDING]) || $transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak Bisa Membatalkan Transaksi Syarat & Ketentuan Tidak Terpenuhi'
+                ];
+            }
+            $transaction->status = $isManagement? StatusTransaction::CANCELLED_BY_ADMIN : StatusTransaction::CANCELLED_BY_CUSTOMER;
+            $transaction->cancelled_reason = $reason;
+            $transaction->save();
+            return [
+                'is_success' => true,
+                'message' => 'Berhasil Membatalkan Transaksi!'
+            ];
+        });
+    }
+
+    public function acceptThePaymentProof(
+        Transaction $transaction,
+        string $reason,
+        UploadedFile|null $image,
+    ) {
+        // apakah bukti pembayaran sudah di accept?
+        if (TransactionPaymentProofStatus::from((string) $transaction->payment_proof->status) === TransactionPaymentProofStatus::ACCEPTED) {
+            return [
+                'is_success' => false,
+                'message' => 'Bukti pembayaran sudah diterima & valid!'
+            ];
+        }
+
+        // cek apakah kita perlu untuk uploud?
+        // cek dari data filenya
+        $cloudinary = new CloudinaryClient();
+        $new_proof = [
+            'old_public_id' => $transaction->payment_proof->public_id,
+            'public_id' => 0,
+            'url' => '',
+            'is_success' => false,
+        ];
+        if ($image) {
+            $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
+            if (!$uplouded) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak Dapat Mengunggah Gambar Bukti Pembayaran'
+                ];
+            }
+            $new_proof['is_success'] = true;
+            $new_proof['url'] = $uplouded['secure_url'];
+            $new_proof['public_id'] = $uplouded['public_id'];
+        }
+
+        // jadi kita uploud image disini
+
+        return DB::transaction(function () use ($transaction, $reason, $new_proof, $cloudinary) {
+            $transaction->status = StatusTransaction::PAID;
+            $transaction->status_delivery = StatusDelivery::PROCESS;
+            $transaction->payment_proof->status = TransactionPaymentProofStatus::ACCEPTED;
+            $transaction->payment_proof->reason = $reason;
+            if ($new_proof['is_success']) {
+                $transaction->payment_proof->url = $new_proof['url'];
+                $transaction->payment_proof->public_id = $new_proof['public_id'];
+            }
+            $transaction->save();
+            $transaction->payment_proof->save();
+
+            // delete the image
+            if($new_proof['is_success']){
+                $deleted_image = $cloudinary->deleteThePaymentProofImage($new_proof['old_public_id']);
+            }
+
+            // seharusnya perlu cek nih di satu stau setelah saving...
+            $message = $new_proof['is_success'] ? 'Berhasil Menyetujui Bukti Pembayaran Customer Dan Mengubah Photo Bukti Pembayaran!' : 'Berhasil Menyetujui Bukti Pembayaran Customer';
+            return [
+                'is_success' => true,
+                'message' => $message,
+            ];
+        });
+    }
+
+    public function rejectThePaymentProof(
+        Transaction $transaction,
+        string $reason
+    ) {
+        return DB::transaction(function () use ($transaction, $reason) {
+
+            // apakah status reject?
+            if ($this->isPaymentProofRejected($transaction->payment_proof)) {
+                return [
+                    'is_success' => false,
+                    'message' => ' Status Bukti Pembayaran Sudah Di Tolak'
+                ];
+            }
+            // apakah transaksi masih bisa menerima pergnatian harga? atau status transaksi sudah di byarkan namun masih di proses
+            if ($this->isAcceptableStatusForChangingShippingCost($transaction->status) || $this->isTransactionStillInProcess($transaction)) {
+                $transaction->status = StatusTransaction::PENDING;
+                $transaction->status_delivery = StatusDelivery::WAIT_FOR_CONFIRMATION;
+                $transaction->save();
+                $transaction->payment_proof->status = TransactionPaymentProofStatus::REJECTED;
+                $transaction->payment_proof->reason = $reason;
+                $transaction->payment_proof->save();
+
+                // seharusnya perlu cek nih di satu stau setelah saving...
+
+                return [
+                    'is_success' => true,
+                    'message' => 'Berhasil Menolak Bukti Pembayaran!'
+                ];
+            }
+
+            // syarat tidak terpenuhi 
+            return [
+                'is_success' => false,
+                'message' => 'Transaksi Sudah Tidak Dapat Menerima Pergantian Ongkos Kirim Atau Status Pengiriman Sudah Tidak Dalam Tahap Prosess Atau Dibawahnya'
+            ];
+
+        });
+    }
+
+    public function changeStatusDelivery(
+        Transaction $transaction,
+        string $status,
+    ){
+        $isValidStatusDelivery = StatusDelivery::tryFrom($status);
+        if(!$isValidStatusDelivery){
+            return [
+                'is_success' => false,
+                'message' => 'Status Delivery Yang DIberikan Tidak Valid',
+            ];
+        }
+        // di proses => menunggu_diambil => dianterin => sampai tujuan
+        // saat diantarkan & sampai tujuan kirimkan email?
+        if(StatusTransaction::from((string) $transaction->status) === StatusTransaction::SUCCESS){
+            return [
+                'is_success' => false,
+                'message' => 'Status Transaksi Sudah Selesai & Tidak Bisa Merubah Kembali Data',
+            ];
+        }
+        $transaction->status_delivery = $isValidStatusDelivery;
+        $transaction->save();
+        return [
+            'is_success' => true,
+            'message' => 'Berhasil merubah Status Pengiriman Menjadi '. $status
+        ];
+    }
+
+    public function completeTheTransaction(
+        Transaction $transaction
+    )
     {
-        // ngambil sesi sekarang aja... bisa dari admin / customer 
-        // cancell ketika transaksi pending atau bisa pas paid (refund)?
+        if (StatusTransaction::from((string) $transaction->status) === StatusTransaction::SUCCESS){
+            return [
+                'is_success' => false,
+                'message' => 'Transaksi Sudah Selesai, Tidak Perlu Diubah Kembali!'
+            ];
+        }
+        // must paid, refund status must none or success, delivery status must delivered and payment proof must accepted
+        // keki gini aja dlu kali ya hehe..
+        if (StatusTransaction::from((string) $transaction->status) !== StatusTransaction::PAID){
+            return [
+                'is_success' => false,
+                'message' => 'Tidak Dapat Menyelesaikan Transaksi, Pastikan Status Transaksi Adalah Terbayar'
+            ];
+        }
+        $transaction->status = StatusTransaction::SUCCESS;
+        $transaction->save();
+         return [
+                'is_success' => true,
+                'message' => 'Berhasil Merubah Status Transaksi Menjadi Success'
+            ];
     }
 
     private function sort_by(
@@ -132,6 +444,22 @@ class TransactionService
             default:
                 return $query;
         }
+    }
+
+    private function isTransactionStillInProcess(Transaction $transaction)
+    {
+        return StatusTransaction::from((string) $transaction->status) === StatusTransaction::PAID
+            && in_array(StatusDelivery::from((string) $transaction->status_delivery), [StatusDelivery::PROCESS, StatusDelivery::WAIT_FOR_CONFIRMATION]);
+    }
+
+    private function isAcceptableStatusForChangingShippingCost(string|StatusTransaction $status)
+    {
+        return in_array(StatusTransaction::from($status), [StatusTransaction::WAITING_FOR_INVOICE, StatusTransaction::PENDING]);
+    }
+
+    private function isPaymentProofRejected(TransactionPaymentProof $payment_proof)
+    {
+        return TransactionPaymentProofStatus::from((string) $payment_proof->status) === TransactionPaymentProofStatus::REJECTED;
     }
 
 

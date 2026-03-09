@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Theme extends Model
 {
     use HasUuids;
+     /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'description',
+        'created_at',
+        'updated_at',
+    ];
 }

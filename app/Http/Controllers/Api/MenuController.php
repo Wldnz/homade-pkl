@@ -8,8 +8,10 @@ use App\Http\Resources\MenuByDateResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
 use App\Http\Resources\PaginationResource;
+use App\Http\Resources\SelectMenuResource;
 use App\ResponseData;
 use App\Service\MenuService;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -174,7 +176,9 @@ class MenuController extends Controller
                 );
             }
 
-            $menus = $this->menuService->getByDate($request->date);
+            $date_at = Carbon::parse($request->date);
+
+            $menus = $this->menuService->getByDate($date_at);
 
             if ($menus->isEmpty()) {
                 return $this->responseData->create(
@@ -186,7 +190,7 @@ class MenuController extends Controller
 
             return $this->responseData->create(
                 'Berhasil mendapatkan menu berdasarkan tanggal',
-                MenuByDateResource::collection($menus)
+                SelectMenuResource::collection($menus)
                 // $menus
             );
 

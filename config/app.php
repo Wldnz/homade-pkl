@@ -137,4 +137,14 @@ return [
         'owner' => env('OWNER_PASSWORD'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password For Management User OWNER & ADMIN
+    |--------------------------------------------------------------------------
+    |
+    | Setting The Password For User With Roles OWNER & ADMIN
+    |
+    */
+
+    'cloudinary_url' => env('CLOUDINARY_URL'),
 ];

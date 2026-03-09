@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
                 "last_name" => fake()->lastName(),
                 "email" => "customer@homade.id",
                 "password" => Hash::make("customermade14#"),
-                'role' => 'customer',
+                'role' => UserRole::CUSTOMER,
                 'phone' => '812345678',
                 "address" => [
                     [
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
                 "last_name" => "Driver",
                 "email" => "driver.ahmad@homade.id",
                 "phone" => '8128419182',
-                "role" => 'driver',
+                "role" => UserRole::DRIVER,
                 "password" => Hash::make('ahmaddrivernihbossenggoldong23!')
             ],
             [
@@ -79,7 +79,7 @@ class UserSeeder extends Seeder
            if($user['role'] == UserRole::ADMIN){
              Log::log(LogLevel::DEBUG, 'password for admin is : '. $password_admin);
            }
-            if ($createdUser->role === 'customer') {
+            if ($createdUser->role === UserRole::CUSTOMER) {
                 foreach ($user['address'] as $address) {
                     UserAddress::create([
                         'id_user' => $createdUser->id,

@@ -55,6 +55,22 @@ class MenuSeeder extends Seeder
                 "chili_sauce" => "Chili Oil",
                 "date_at" => now()->addDays(1),
             ],
+             [
+                "name" => "Ayam Brokoli",
+                "description" => "Sumpah enak Banget cuy",
+                "vegetable" => "brokoli",
+                "side_dish" => "Scrambled Egg",
+                "chili_sauce" => "Chili Oil",
+                "date_at" => now()->addDays(2),
+            ],
+             [
+                "name" => "Ikan mas",
+                "description" => "ini makanannya enak banget...",
+                "vegetable" => "Salad Jepang",
+                "side_dish" => "Scrambled Egg",
+                "chili_sauce" => "Chili Oil",
+                "date_at" => now()->addDays(2),
+            ],
         ];
 
         foreach ($menus as $menu) {

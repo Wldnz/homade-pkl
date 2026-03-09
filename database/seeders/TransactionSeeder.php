@@ -16,6 +16,9 @@ use App\StatusDelivery;
 use App\StatusTransaction;
 use App\TransactionCategory;
 use App\TransactionPaymentProofStatus;
+use App\UserRole;
+use App\Utils\CloudinaryClient;
+use Exception;
 use Illuminate\Database\Seeder;
 
 class TransactionSeeder extends Seeder
@@ -26,6 +29,9 @@ class TransactionSeeder extends Seeder
     public function run(): void
     {
 
+        $cloudinary = new CloudinaryClient();
+        $sample_url = 'https://res.cloudinary.com/ddiulakke/image/upload/v1773030579/contoh-payment-success_dcpgei.png';
+        $images_assets = $cloudinary->getAllPaymentProofs(2);
         $transactions = [
             [
                 'status' => StatusTransaction::WAITING_FOR_INVOICE,
@@ -102,7 +108,7 @@ class TransactionSeeder extends Seeder
             ]
         ];
 
-        $users = User::where('role', 'customer')->get();
+        $users = User::where('role', UserRole::CUSTOMER)->get();
         $shippingCost = 5000;
 
         foreach ($users as $user) {
@@ -170,17 +176,28 @@ class TransactionSeeder extends Seeder
                 ]);
 
                 if (isset($transaction['payment'])) {
+                    $image = null;
+                    if (count($images_assets) > 0) {
+                        $image = $images_assets[0];
+                        unset($images_assets[0]);
+                        $images_assets = array_values($images_assets);
+                    } else {
+                        $image = $cloudinary->uploudPaymentProof($sample_url);
+                        if (!$image){
+                            return;
+                        }
+                    }
                     TransactionPaymentProof::create([
                         'id_transaction' => $createdTransaction->id,
-                        'url' => fake()->imageUrl(),
+                        'public_id' => $image['public_id'],
+                        'url' => $image['secure_url'],
                         'reason' => fake()->text(50),
                         'status' => $transaction['payment']['status'],
                         'created_at' => now(),
-                        'updated_at' => now(),
                     ]);
                 }
 
-                if(isset($transaction['driver'])){
+                if (isset($transaction['driver'])) {
                     TransactionDriver::create([
                         'id_transaction' => $createdTransaction->id,
                         'id_driver' => User::where('role', 'driver')->inRandomOrder()->first()->value('id'),

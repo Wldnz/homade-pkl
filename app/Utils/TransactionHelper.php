@@ -90,7 +90,7 @@ class TransactionHelper
     {
         $today = Carbon::today()->setTime(15,0,0);
 
-        if($delivery_at->isTomorrow() || $delivery_at->greaterThan(now()->addDays(1)) && now()->greaterThan($today)){
+        if($delivery_at->isTomorrow() && now()->greaterThan($today)){
             return false;
         }
         return true;

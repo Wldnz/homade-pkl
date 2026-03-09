@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->enum("status_delivery", StatusDelivery::cases())->default(StatusDelivery::WAIT_FOR_CONFIRMATION);
             $table->enum('refund_status', RefundStatus::cases())->default(RefundStatus::NONE);
             $table->text('refund_reason')->nullable();
+            $table->text('cancelled_reason')->nullable();
             $table->text('note')->nullable();
             $table->timestamp('delivery_at');
             $table->timestamps();
@@ -59,6 +60,7 @@ return new class extends Migration {
         Schema::create('transaction_payment_proofs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('id_transaction');
+            $table->string('public_id', 255);
             $table->string('url', 265);
             $table->text('reason')->nullable();
             $table->enum('status', TransactionPaymentProofStatus::cases())->default(TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION);

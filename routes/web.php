@@ -53,6 +53,13 @@ Route::name('user.')->group(function () {
 
             Route::get('/orders', [TransactionController::class, 'orders'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detail'])->name('detail-order');
+
+            // uploud & uploud bukti pembayaran
+            Route::post('/order/payment-proof/{id}', [TransactionController::class, 'uploudPaymentProofHandler'])->name('uploud-payment-proof');
+            // batalkan trasanksi
+            Route::post('/order/cancell/{id}', [TransactionController::class, 'cancelledTransactionHandler'])->name('cancell-order');
+  
+
         });
 
         Route::post('/checkout', [TransactionController::class, 'checkout'])->name('checkout');
@@ -75,17 +82,24 @@ Route::middleware([
     Route::get('/dashboard', [\App\Http\Controllers\Admin\MainController::class, 'index'])->name('dashboard');
 
     // theme
-    Route::get('/categories', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('categories');
-    Route::get('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'detail'])->name('detail-category');
-    Route::get('/categories', [\App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('add-category');
-    // kategori
     Route::get('/themes', [\App\Http\Controllers\Admin\ThemeController::class, 'index'])->name('themes');
     Route::get('/themes/{id}', [\App\Http\Controllers\Admin\ThemeController::class, 'detail'])->name('detail-theme');
-    Route::get('/themes', [\App\Http\Controllers\Admin\ThemeController::class, 'store'])->name('add-theme');
+    Route::get('/theme-create', [\App\Http\Controllers\Admin\ThemeController::class, 'store'])->name('add-theme-page');
+    Route::post('/themes', [\App\Http\Controllers\Admin\ThemeController::class, 'storeHandler'])->name('add-theme');
+    Route::put('/theme/{id}', [\App\Http\Controllers\Admin\ThemeController::class, 'editHandler'])->name('edit-theme');
+    Route::delete('/themes/{id}', [\App\Http\Controllers\Admin\ThemeController::class, 'deleteHandler'])->name('delete-theme');
+    // kategori
+    Route::get('/categories', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('categories');
+    Route::get('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'detail'])->name('detail-category');
+    
+    Route::get('/category-create', [\App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('add-category-page');
+    Route::post('/category', [\App\Http\Controllers\Admin\CategoryController::class, 'storeHandler'])->name('add-category');
+      Route::put('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'editHandler'])->name('edit-category');
+       Route::delete('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('delete-category');
     // menu
     Route::get('/menus', [\App\Http\Controllers\Admin\MenuController::class, 'index'])->name('menus');
     Route::get('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'detail'])->name('detail-menu');
-    Route::get('/menus', [\App\Http\Controllers\Admin\MenuController::class, 'store'])->name('add-menu');
+    Route::get('/menu-create', [\App\Http\Controllers\Admin\MenuController::class, 'store'])->name('add-menu');
     // jadwal menu
     Route::get('/schedules', [\App\Http\Controllers\Admin\ScheduleController::class, 'index'])->name('schedules');
     Route::get('/schedules/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'detail'])->name('detail-schedule');
@@ -93,11 +107,23 @@ Route::middleware([
     // pemesanan
     Route::get('/orders', [\App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('orders');
     Route::get('/orders/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'detail'])->name('detail-order');
-    Route::get('/orders', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order');
+    Route::get('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order');
+
+    // note: id yang diberikan adalah id transaksi
+    Route::put('/order/change-shipping-cost/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeShippingCostHandler'])->name('change-shipping-cost');
+    Route::post('/order/reject/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'rejectTheTransactionHandler'])->name('reject-order');
+    // butki pembayaran handler 
+    Route::post('/order/create-payment-proof/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'uploudThePaymentProofHandler'])->name('uploud-payment-proof');
+    Route::post('/order/accept-payment-proof/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'acceptThePaymentProof'])->name('accept-payment-proof');
+    Route::post('/order/reject-payment-proof/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'rejectThePaymentProof'])->name('reject-payment-proof');
+     // ubah status pengiriman
+    Route::put('/order/status-delivery/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeDeliveryStatusHandler'])->name('change-status-delivery-order');
+    // complete the transaction
+    Route::post('/order/complete/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'completeTheTransactionHandler'])->name('complete-order');
     // account
     Route::get('/accounts', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('accounts');
     Route::get('/accounts/{id}', [\App\Http\Controllers\Admin\AccountController::class, 'detail'])->name('detail-account');
-    Route::get('/accounts', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('add-account');
+    Route::get('/account-create', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('add-account');
     // setting
 });
 

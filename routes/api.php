@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TestEmailController;
+use App\Http\Controllers\Api\TestingController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
@@ -20,6 +21,13 @@ Route::name('api')->group(function () {
 
     Route::get('/test', function () {
         return response()->json(['message' => 'hello']);
+    });
+
+    Route::prefix('file')->group(function (): void {
+        Route::get('/payment-proofs', [TestingController::class, 'all'])->name('all-files');
+        Route::post('/uploud', [TestingController::class, 'uploudFile'])->name('uploud-file');
+        Route::get('/detail/{id}', [TestingController::class, 'getImage'])->name('get-file');
+        Route::delete('/delete', [TestingController::class, 'DeleteFile'])->name('delete-file');
     });
 
     Route::post('/signin', [AuthController::class, 'signin'])->name('signin');
