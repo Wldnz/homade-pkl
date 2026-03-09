@@ -75,6 +75,7 @@ License: For each use you must have a valid license purchased only from above li
 						<!--end::Header-->
 						<!--begin::Body-->
 						<div class="py-20">
+
 							<!--begin::Form-->
 							<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('user.signin') }}" method="POST">
                             @csrf
@@ -144,6 +145,7 @@ License: For each use you must have a valid license purchased only from above li
 								<!--begin::Body-->
 							</form>
 							<!--end::Form-->
+							
 						</div>
 						<!--end::Body-->
 					</div>
@@ -151,7 +153,7 @@ License: For each use you must have a valid license purchased only from above li
 				</div>
 				<!--end::Aside-->
 				<!--begin::Body-->
-				<div class="d-none d-lg-flex flex-lg-row-fluid w-50 bgi-size-cover bgi-position-y-center bgi-position-x-start bgi-no-repeat" style="background-image: url(img/img1.jpg)"></div>
+				<div class="d-none d-lg-flex flex-lg-row-fluid w-50 bgi-size-cover bgi-position-y-center bgi-position-x-start bgi-no-repeat" style="background-image: url(img/img1.webp)"></div>
 				<!--begin::Body-->
 			</div>
 			<!--end::Authentication - Sign-in-->

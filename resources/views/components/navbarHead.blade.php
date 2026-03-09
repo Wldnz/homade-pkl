@@ -71,7 +71,7 @@
                         <!--begin:Menu item-->
                         <div class="menu-item">
                             <!--begin:Menu link-->
-                            <a href="/" class="menu-link">
+                            <a href="/contact" class="menu-link">
                                 <span class="menu-title fs-1 {{ $page == "contact" ? 'text-yellow' : 'text-white fw-normal' }}">Contact</span>
                             </a>
                             <!--end:Menu link-->
@@ -87,9 +87,9 @@
                     <div class="app-navbar-item ms-1 ms-md-4" id="kt_header_user_menu_toggle">
                         <!--begin::Menu wrapper-->
                         <!-- <div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end"> -->
-                        <div class="cursor-pointer symbol symbol-35px" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                        <a href="/me" class="cursor-pointer symbol symbol-35px" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
                             <img src="{{ asset("assets/media/avatars/300-3.jpg")}}" class="rounded-circle" alt="user" />
-                        </div>
+                        </a>
                         <!--begin::User account menu-->
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
                             <!--begin::Menu item-->

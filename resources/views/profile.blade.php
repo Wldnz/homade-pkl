@@ -126,27 +126,86 @@
                         <p class="fs-3 fw-bolder">Prestasi yand dicapai oleh Homade sebagai startup copany</p>
                     </div>
 
+                    <span class="h-50px"></span>
+
                     <div class="d-flex w-100 h-150px gap-5">
-                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center justify-content-center h-100">
+
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center h-100">
                             <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
                             <div class="d-flex w-1px h-100 bg-black"></div>
                         </div>
-                        <div class="d-flex w-100 h-100 bg-danger"></div>
+
+                        <div class="d-flex flex-column w-100 h-100">
+                            <p class="fs-2 text-accent mb-1">Juni 2017</p>
+                            <p class="fs-2 fw-bolder mb-0">Homade Launching</p>
+                            <p class="fs-3">CEO sekaligus fouder homade bersama tim  membangun homade resmi menjadi startup katering online untuk area jakarta</p>
+                        </div>
                     </div>
 
                     <div class="d-flex w-100 h-150px gap-5">
-                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center justify-content-center h-100">
+
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center h-100">
                             <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
                             <div class="d-flex w-1px h-100 bg-black"></div>
                         </div>
-                        <div class="d-flex w-100 h-100 bg-danger"></div>
+
+                        <div class="d-flex flex-column w-100 h-100">
+                            <p class="fs-2 text-accent mb-1">Oktober 2017</p>
+                            <p class="fs-2 fw-bolder mb-0">3rd winner - Stratup Instanbul, Turki</p>
+                            <p class="fs-3">Juara 3  kompetisi startup bergengsi di dunia startup Instanbul 2017, Turki. Berhasil memperkenalkan diri ke kancah Internasioanal</p>
+                        </div>
                     </div>
+
+                    <div class="d-flex w-100 h-150px gap-5">
+
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center h-100">
+                            <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
+                            <div class="d-flex w-1px h-100 bg-black"></div>
+                        </div>
+
+                        <div class="d-flex flex-column w-100 h-100">
+                            <p class="fs-2 text-accent mb-1">February 2018</p>
+                            <p class="fs-2 fw-bolder mb-0">1st Winner - Get In The Ring, Jakarta</p>
+                            <p class="fs-3">Menjuarai kompetisi Get In Ring Jakarta sebagai Juara 1 dan mewakili indonesia di tingkat  global di portugal</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex w-100 h-150px gap-5">
+
+                        <div class="d-flex flex-shrink-0 w-40px flex-column align-items-center h-100">
+                            <div class="d-flex w-65 flex-shrink-0 ratio-1 bg-accent rounded-circle"></div>
+                        </div>
+
+                        <div class="d-flex flex-column w-100 h-100">
+                            <p class="fs-2 text-accent mb-1">Global Perticipant</p>
+                            <p class="fs-2 fw-bolder mb-0">Get In Ring Global, Portugal</p>
+                            <p class="fs-3">Kesempatan partisipasi  Homade  di kancah global yang menghubungkan Homade dengan  jejaring bisnis dunia.</p>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
                 
         </div>
         
+        <span class="h-60px flex-shrink-0"></span>
+        
+        <div class="d-flex w-100 align-items-center justify-content-center flex-column">
+            <p class="fsc-6 text-black fw-bolder">Kerjasama Homade</p>
+            <span class="w-200px bg-accent h-5px"></span>
+        </div>
+        
+        <span class="h-40px flex-shrink-0"></span>
+
+        <div class="d-flex w-100 h-50 flex-shrink-0 mb-5 align-items-center justify-content-center">
+            <div class="d-grid grid-template-homade-sponsor w-75 h-100 gap-5">
+                @foreach (range(1,12) as $i)
+                <img src="{{ $placeImg }}" alt="" class="object-fit-cover">
+                @endforeach
+            </div>
+        </div>
+
         <span class="h-60px flex-shrink-0"></span>
 
         @include('components.navbarFoot',[ "page" => "profile"])

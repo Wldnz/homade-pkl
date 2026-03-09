@@ -2,8 +2,7 @@
 <head>
     @vite([
         'sass/app.scss', 
-        'sass/metronic/style.scss', 
-		
+        'sass/metronic/style.scss',
     ])
     <title>Homade</title>
 		<meta charset="utf-8" />
@@ -29,4 +28,7 @@
 		<link href="/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
 		<script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
+		
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 	</head>
