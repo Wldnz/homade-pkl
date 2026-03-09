@@ -1,6 +1,7 @@
 @php
     $placeImg = "https://placehold.co/400";
-    $category = request('category')
+    $category = request('category');
+    $response['data'];
 @endphp
 
 <!DOCTYPE html>
@@ -30,23 +31,23 @@
 
                 <div class="d-flex h-40px w-100 justify-content-center gap-5">
                     
-                    <a href="/menus#category" class="d-flex {{ !$category ? 'bg-accent' : '' }} h-100 align-items-center pe-5 ps-5 rounded-pill">
+                    <a href="/menus#category" class="d-flex {{ !$category ? 'bg-accent' : '' }} h-100 align-items-center px-5 rounded-pill">
                         <p class="fs-2 {{ !$category ? 'text-white' : 'text-grey' }} mb-0 fw-bold">ALL</p>
                     </a>
 
-                    <a href="/menus?category=chicken#category" class="d-flex {{ $category == "chicken" ? 'bg-accent' : '' }} h-100 align-items-center pe-5 ps-5 rounded-pill">
+                    <a href="/menus?category=chicken#category" class="d-flex {{ $category == "chicken" ? 'bg-accent' : '' }} h-100 align-items-center px-5 rounded-pill">
                         <p class="fs-2 {{ $category == "chicken" ? 'text-white' : 'text-grey' }} mb-0 fw-bold">Ayam</p>
                     </a>
 
-                    <a href="/menus?category=fish#category" class="d-flex {{ $category == "fish" ? 'bg-accent' : '' }} h-100 align-items-center pe-5 ps-5 rounded-pill">
+                    <a href="/menus?category=fish#category" class="d-flex {{ $category == "fish" ? 'bg-accent' : '' }} h-100 align-items-center px-5 rounded-pill">
                         <p class="fs-2 {{ $category == "fish" ? 'text-white' : 'text-grey' }} mb-0 fw-bold">Ikan & Seafood</p>
                     </a>
 
-                    <a href="/menus?category=rice#category" class="d-flex {{ $category == "rice" ? 'bg-accent' : '' }} h-100 align-items-center pe-5 ps-5 rounded-pill">
+                    <a href="/menus?category=rice#category" class="d-flex {{ $category == "rice" ? 'bg-accent' : '' }} h-100 align-items-center px-5 rounded-pill">
                         <p class="fs-2 {{ $category == "rice" ? 'text-white' : 'text-grey' }} mb-0 fw-bold">Nasi</p>
                     </a>
 
-                    <a href="/menus?category=beef#category" class="d-flex {{ $category == "beef" ? 'bg-accent' : '' }} h-100 align-items-center pe-5 ps-5 rounded-pill">
+                    <a href="/menus?category=beef#category" class="d-flex {{ $category == "beef" ? 'bg-accent' : '' }} h-100 align-items-center px-5 rounded-pill">
                         <p class="fs-2 {{ $category == "beef" ? 'text-white' : 'text-grey' }} mb-0 fw-bold">Sapi & Kambing</p>
                     </a>
                 </div>
@@ -54,12 +55,12 @@
                 <div class="d-flex h-50px w-100 justify-content-center align-items-center">
                     <div class="w-90 h-100 d-flex justify-content-between">
 
-                        <div class="h-100 w-50 bg-light-grey rounded d-flex align-items-center pe-5 ps-5 gap-5 cursor-text" onclick="focusInput()">
+                        <div class="h-100 w-50 bg-light-grey rounded d-flex align-items-center px-5 gap-5 cursor-text" onclick="focusInput()">
                             <div class="d-flex h-50 ratio-1"> <img src="icons/search.svg" class="w-100 h-100" alt=""></div>
                             <input type="text" class="w-100 h-100 fs-2" id="searchInput" placeholder="cari menu...">
                         </div>
 
-                        <div class="h-100 w-25 bg-light-grey rounded pe-5 ps-5">
+                        <div class="h-100 w-25 bg-light-grey rounded px-5">
                             <select name="" id="" class="w-100 h-100 border-0 outline-0 bg-transparent fs-4">
                                 <option value="" selected>Semua Tema Menu</option>
                                 <option value="">Wildan</option>
@@ -80,12 +81,12 @@
                 </div>
             </div>
 
-            <div class="d-flex w-100 h-150 flex-shrink-0 align-items-center justify-content-center">
+            <div class="d-flex w-100 flex-shrink-0 align-items-center justify-content-center">
                 
-                <div class="d-grid grid-template-homade w-90 h-100 flex-wrap flex-shrink-0 gap-5">
+                <div class="d-grid grid-template-homade-menus w-90 flex-wrap flex-shrink-0 gap-5">
 
                     @foreach (range(1, 8) as $i)
-                    <a href="menus/9" class="d-flex flex-column gap-5 div-{{ $i }}">
+                    <a href="menus/9" class="d-flex flex-column gap-5 h-500px">
 
                         <div class="w-100 h-75">
                             <img src="{{ $placeImg }}" class="w-100 h-100 object-fit-cover">
@@ -114,6 +115,8 @@
             }
 
         </script>
+    {{  dd($response) }}
     </body>
+
 
 </html>

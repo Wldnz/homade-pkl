@@ -186,26 +186,15 @@
 
         <span class="d-flex w-1px h-25 flex-shrink-0"></span>
 
-        <div class="d-flex w-100 h-50 flex-shrink-0 flex-column mb-5 gap-5 align-items-center justify-content-center">
-            <div class="d-flex w-75 h-50 gap-5">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-            </div>
-            <div class="d-flex w-75 h-50 gap-5">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
-                <img src="{{ $placeImg }}" alt="" class="w-100 h-100 object-fit-cover">
+        <div class="d-flex w-100 h-50 flex-shrink-0 mb-5 align-items-center justify-content-center">
+            <div class="d-grid grid-template-homade-sponsor w-75 h-100 gap-5">
+                @foreach (range(1,12) as $i)
+                <img src="{{ $placeImg }}" alt="" class="object-fit-cover">
+                @endforeach
             </div>
         </div>
 
-        <span class="d-flex w-1px h-20px flex-shrink-0"></span>
+        <span class="d-flex w-1px h-50px flex-shrink-0"></span>
 
         @include('components.navbarFoot',[ "page" => "home"])
         <script src="assets/plugins/global/plugins.bundle.js"></script>

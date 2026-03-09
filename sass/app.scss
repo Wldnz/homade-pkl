@@ -130,10 +130,8 @@ body
     }
 }
 
-.ratio-1
-{
-    aspect-ratio: 1/1;
-}
+.ratio-1 {aspect-ratio: 1/1;}
+.ratio-16 {aspect-ratio: 16/9;}
 
 .w-90
 {
@@ -150,22 +148,18 @@ body
     height: max-content;
 }
 
-.grid-template-homade
+.grid-template-homade-sponsor
+{
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows:1fr;
+    gap: 5px;
+}
+
+.grid-template-homade-menus
 {
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    grid-column-gap: 5px;
-    grid-row-gap: 5px;
-
-    
-    .div1 { grid-area: 1 / 1 / 2 / 2; }
-    .div2 { grid-area: 1 / 2 / 2 / 3; }
-    .div3 { grid-area: 1 / 3 / 2 / 4; }
-    .div4 { grid-area: 1 / 4 / 2 / 5; }
-    .div5 { grid-area: 2 / 1 / 3 / 2; }
-    .div6 { grid-area: 2 / 2 / 3 / 3; }
-    .div7 { grid-area: 2 / 3 / 3 / 4; }
-    .div8 { grid-area: 2 / 4 / 3 / 5; }
+    grid-auto-rows:1fr;
+    gap: 5px;
 }
 
 .translate-50
@@ -245,6 +239,11 @@ body
         background-color: $color-accent;
     }
 
+    &-light-accent
+    {
+        background-color: #FFF1F2;
+    }
+
     &-grey
     {
         background-color: #1c1c1c;
@@ -279,6 +278,14 @@ body
     outline: none;
 }
 
+.border-homade-1 {border: 1.5px solid $color-accent;}
+.border-homade-2 {border: 2px solid $color-accent;}
+.border-homade-3 {border: 3px solid $color-accent;}
+
+.border-grey-1 {border: 1.5px solid #DBDFE9}
+.border-grey-2 {border: 2px solid #DBDFE9;}
+.border-grey-3 {border: 3px solid #DBDFE9;}
+
 .homade-underline
 {
     position: relative;
@@ -296,12 +303,32 @@ body
     }
 }
 
+.homade-underline-black
+{
+    position: relative;
+    width: max-content;
+
+    &::after
+    {
+        position: absolute;
+        width: 80%;
+        height: 1px;
+        background-color: #000;
+        content: "";
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+    }
+}
+
 .cursor
 {
     &-default {cursor: default;}
     &-pointer {cursor: pointer;}
     &-text {cursor: text;}
 }
+
+.fw-black {font-weight: 800;}
 
 .h-1em {height: 1em;}
 .h-11em {height: 1.1em;}
@@ -310,11 +337,15 @@ body
 .h-2em {height: 2em;}
 .h-3em {height: 3em;}
 
+.w-65 {width: 65%;}
+.w-70 {width: 70%;}
 .w-125 {width: 125%;}
 .w-150 {width: 150%;}
 .w-175 {width: 175%;}
 .w-200 {width: 200%;}
 
+.h-65 {height: 65%;}
+.h-70 {height: 70%;}
 .h-125 {height: 125%;}
 .h-150 {height: 150%;}
 .h-175 {height: 175%;}
