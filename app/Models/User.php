@@ -48,6 +48,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -62,7 +63,7 @@ class User extends Authenticatable implements JWTSubject
     }
 
     public function isAdminOrOwner(){
-        return in_array($this->role, [ UserRole::ADMIN, UserRole::OWNER ]);
+        return in_array( $this->role, [ UserRole::ADMIN, UserRole::OWNER ]);
     }
 
     /**

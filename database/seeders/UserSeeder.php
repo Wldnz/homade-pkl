@@ -4,9 +4,13 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\UserAddress;
+use App\UserRole;
+use Config;
 use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Log;
+use Psr\Log\LogLevel;
 
 class UserSeeder extends Seeder
 {
@@ -15,6 +19,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+
+       $password_admin = Config::get('app.user_management_password.admin');     
+       $password_owner = Config::get('app.user_management_password.owner');    
 
         $users = [
             [
@@ -48,15 +55,15 @@ class UserSeeder extends Seeder
                 "first_name" => "Admin",
                 "last_name" => "Homade",
                 "email" => "admin@homade.id",
-                'role' => 'admin',
-                "password" => Hash::make(env('ADMIN_PASSWORD'))
+                'role' => UserRole::ADMIN,
+                "password" => Hash::make($password_admin)
             ],
             [
                 "first_name" => "Owner",
                 "last_name" => "Homade",
                 "email" => "owmer@homade.id",
-                'role' => 'admin',
-                "password" => Hash::make(env('OWNER_PASSWORD'))
+                'role' => UserRole::OWNER,
+                "password" => Hash::make($password_owner)
             ]
         ];
 
@@ -69,6 +76,9 @@ class UserSeeder extends Seeder
                 'phone' => $user['phone'] ?? null,
                 'password' => $user['password'],
             ]);
+           if($user['role'] == UserRole::ADMIN){
+             Log::log(LogLevel::DEBUG, 'password for admin is : '. $password_admin);
+           }
             if ($createdUser->role === 'customer') {
                 foreach ($user['address'] as $address) {
                     UserAddress::create([

@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'), //default UTC sblmnya
 
     /*
     |--------------------------------------------------------------------------
@@ -121,6 +121,20 @@ return [
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password For Management User OWNER & ADMIN
+    |--------------------------------------------------------------------------
+    |
+    | Setting The Password For User With Roles OWNER & ADMIN
+    |
+    */
+
+    'user_management_password' => [
+        'admin' => env('ADMIN_PASSWORD'),
+        'owner' => env('OWNER_PASSWORD'),
     ],
 
 ];

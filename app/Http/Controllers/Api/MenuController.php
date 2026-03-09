@@ -42,7 +42,6 @@ class MenuController extends Controller
                 $search,
                 $theme,
                 $category,
-                $page,
                 $limit,
             );
 

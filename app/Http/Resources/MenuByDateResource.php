@@ -25,19 +25,8 @@ class MenuByDateResource extends JsonResource
                 'side_dish' => $this->menu->side_dish,
                 'sauce' => $this->menu->chili_sauce,
             ],
-            'categories' => $this->menu->menu_categories->map(function ($category) {
-                return $category->categories->name;
-            }),
-            'packages' => $this->menu->prices->map(function ($price) {
-                return [
-                    'id' => $price->id,
-                    'name' => $price->package->name,
-                    'description' => $price->package->description,
-                    'price' => $price->price,
-                    'minimum_order' => $price->package->minimum_order,
-                    'image_url' => $price->package->image_url,
-                ];
-            })
+            
+            // 'packages' => $price
         ];
     }
 }

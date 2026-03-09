@@ -53,14 +53,15 @@ class HomeController extends Controller
                     'categories' => $categories,
                     'packages' => PackageResource::collection($packages),
                     'partners' => $partners,
-                ]
+                ],
+                isJson:false
             );
 
             return view('home', compact('response'));
 
         }catch(Exception $e){
             Log::error($e->getMessage());
-            $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
                 status_code:500,
