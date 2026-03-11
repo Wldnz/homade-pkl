@@ -6,9 +6,14 @@ use App\Models\MenuCategory;
 class CategoryService{
 
     public function all(
+        string|null $search = null,
         $limit = 3,
     ){
-        return Category::paginate($limit);
+        return Category::when($search, function($query, $search){
+            $search = strtolower($search);
+            return $query->whereRaw('LOWER(name) LIKE ?',"%$search%");
+        })
+        ->paginate($limit);
     }
 
     public function detail(string $id){

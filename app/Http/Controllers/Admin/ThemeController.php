@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
 use App\ResponseData;
-use App\Service\CategoryService;
 use App\Service\ThemeService;
 use Exception;
 use Illuminate\Http\Request;
@@ -15,21 +14,20 @@ use Validator;
 class ThemeController extends Controller
 {
     private ResponseData $responseData;
-    private CategoryService $categoryService;
     private ThemeService $themeService;
 
     public function __construct()
     {
-        $this->categoryService = new CategoryService;
         $this->responseData = new ResponseData;
         $this->themeService = new ThemeService();
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-
-            $themes = $this->themeService->all(8);
+            $search = $request->query('search');
+            $limit = (int) $request->query('limit', 8);
+            $themes = $this->themeService->all($search, $limit);
 
             if ($themes->isEmpty()) {
                 $response = $this->responseData->create(
@@ -43,7 +41,7 @@ class ThemeController extends Controller
             }
 
             $response = $this->responseData->create(
-                'Berhasil mendapatkan category',
+                'Berhasil mendapatkan Tema',
                 [
                     'pagination' => new PaginationResource($themes),
                     'themes' => $themes,

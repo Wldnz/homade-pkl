@@ -29,7 +29,7 @@ class UserController extends Controller
                 new MeResources($user),
                 isJson:false
             );
-            return view('profile', compact('response'));
+            return view('profile.index', compact('response'));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             $resonse = $this->responseData->create(
@@ -38,7 +38,7 @@ class UserController extends Controller
                 status_code:500,
                 isJson:false
             );
-            return view('profile', compact('response'));
+            return view('profile.index', compact('response'));
         }
     }
 

@@ -23,11 +23,14 @@ class CategoryController extends Controller
         $this->responseData = new ResponseData;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
 
-            $categories = $this->categoryService->all(8);
+            $search = $request->query('search');
+            $limit = (int) $request->query('limit', 8);
+
+            $categories = $this->categoryService->all($search, $limit);
 
             if ($categories->isEmpty()) {
                 $response = $this->responseData->create(

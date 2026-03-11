@@ -15,31 +15,41 @@ class ThemeService
     }
 
     public function all(
+        string|null $search = null,
         $limit = 5
-    ){
-        return Theme::paginate($limit);
+    ) {
+        return Theme::when($search, function ($query, $search) {
+            $search = strtolower($search);
+            return $query->whereRaw('LOWER(name) LIKE ?', "%$search%");
+        })
+            ->paginate($limit);
     }
 
-    public function detail(string $id){
+    public function detail(string $id)
+    {
         return Theme::where('id', $id)->first();
     }
 
-    public function save(array $data){
+    public function save(array $data)
+    {
         return Theme::create([
             'name' => $data['name'],
-            'description'=> $data['description'],
+            'description' => $data['description'],
             'created_at' => now(),
             'updated_at' => now()
         ]);
     }
 
-    public function edit(Theme $theme, array $data){
+    public function edit(Theme $theme, array $data)
+    {
         $theme->name = $data['name'];
         $theme->description = $data['description'];
         $theme->save();
         return $theme;
     }
 
-    public function delete(){}
+    public function delete()
+    {
+    }
 
 }
