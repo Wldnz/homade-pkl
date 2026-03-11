@@ -3,13 +3,18 @@
 namespace App\Service;
 
 use App\Models\Menu;
+use App\Models\MenuCategory;
 use App\Models\MenuPrice;
 use App\Models\MenuSchedule;
 use App\TransactionCategory;
+use App\Utils\CloudinaryClient;
 use Carbon\Carbon;
 use Date;
+use DB;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\UploadedFile;
 use Log;
 
 class MenuService
@@ -19,13 +24,13 @@ class MenuService
         string $theme = null,
         string $category = null,
         int $limit = 10,
-        bool $isActive = true,
+        string|null $status_active = 'active',
     ) {
 
         $menus = Menu::with(['menu_categories', 'theme'])
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
-            })->where('is_active', $isActive)
+            })
             ->when($theme, function ($query, $theme) {
                 return $query->whereHas('theme', function ($q) use ($theme) {
                     return $q->where('name', $theme);
@@ -37,6 +42,10 @@ class MenuService
                         return $qc->where('name', $category);
                     });
                 });
+            })
+            ->when($status_active != 'all', function ($query) use ($status_active) {
+                $is_active = $this->getStatusActive($status_active);
+                return $query->where('is_active', $is_active);
             })
             ->paginate($limit);
 
@@ -53,12 +62,16 @@ class MenuService
 
     public function searchByID(string|int $id)
     {
-        return Menu::findOrFail($id)
-            ->with([
-                'menu_categories',
-                'theme',
-                'prices',
-            ])->first();
+        return Menu::with([
+            'menu_categories',
+            'theme',
+            'prices' => function($query){
+                if(!auth()->user() || !auth()->user()->isAdminOrOwner()){
+                    return $query->where('price', '>', 0);
+                }
+                return $query;
+            },
+        ])->find($id);
     }
 
     public function withThemeAndCategory(
@@ -115,14 +128,14 @@ class MenuService
     public function getByDate(Carbon $date)
     {
         return Menu::with([
-             'menu_categories',
+            'menu_categories',
             'theme',
             'prices',
             'schedule',
         ])
-        ->whereHas('schedule', function($query) use($date){
-           return $query->whereDate('date_at', $date); 
-        })->get();
+            ->whereHas('schedule', function ($query) use ($date) {
+                return $query->whereDate('date_at', $date);
+            })->get();
     }
 
     public function menuNonWeekly(
@@ -237,21 +250,242 @@ class MenuService
             // tambahin validas waktu pengiriman untuk bedain mana yang weekly dan mana yang bukan
             // mendapatkan menu mingguan watknya paling lama dlu baru gas...
             ->whereHas('schedule', function ($query) use ($delivery_at) {
-                return $query->whereDate('date_at', '<=',$delivery_at);
+                return $query->whereDate('date_at', '<=', $delivery_at);
             })
             ->afterQuery(function (Collection $menus) use ($items) {
                 $menus = $menus->map(function ($menu) use ($items) {
                     $item = array_find($items['items'], fn($item) => $item['id'] === $menu->id);
-                    $menu->prices = $menu->prices->map(function ($price) use($item) {
-                        $orderedPackage = array_find($item['packages'], fn ($p) => $p['id'] === $price->id);
+                    $menu->prices = $menu->prices->map(function ($price) use ($item) {
+                        $orderedPackage = array_find($item['packages'], fn($p) => $p['id'] === $price->id);
                         $price->quantity = $orderedPackage['quantity'];
                         $price->note = $orderedPackage['note'] ?? '';
                         return $price;
                     });
-                    $menu->category = $menu->schedule->isEmpty() ? 'non-weekly' : 'weekly'; 
+                    $menu->category = $menu->schedule->isEmpty() ? 'non-weekly' : 'weekly';
                     return $menu;
                 });
             })->get();
+    }
+
+    public function save(
+        array $data,
+    ) {
+        $cloudinary = new CloudinaryClient();
+        $uplouded = null;
+
+        if (isset($data['image'])) {
+            $uplouded = $cloudinary->uploud(
+                $data['image']->getRealPath(),
+                'menus'
+            );
+            if (!$uplouded) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak berhasil dalam mengunggah gambar!'
+                ];
+            }
+        }
+
+        try {
+
+            return DB::transaction(function () use ($cloudinary, $uplouded, $data) {
+
+                $menu = new Menu();
+
+                $menu->name = $data['name'];
+                $menu->id_theme = $data['theme_id'];
+                $menu->description = $data['description'];
+                $menu->side_dish = $data['side_dish'];
+                $menu->vegetable = $data['vegetable'] ?? $menu->vegetable;
+                $menu->chili_sauce = $data['sauce'] ?? $menu->chili_sauce;
+                $menu->fruit = $data['fruit'] ?? $menu->fruit;
+                $menu->is_active = $this->getStatusActive($data['status_active']);
+
+                if ($uplouded) {
+                    $menu->image_url = $uplouded['secure_url'];
+                    $menu->image_public_id = $uplouded['public_id'];
+                }
+
+                $menu->setCreatedAt(now());
+                $menu->setUpdatedAt(now());
+                $menu->save();
+
+                if(isset($data['category_ids'])){
+                    foreach ($data['category_ids'] as $category_id) {
+                    MenuCategory::create([
+                        'id_menu' => $menu->id,
+                        'id_category' => $category_id,
+                        'created_at' => now(),
+                        'update_at' => now(),
+                    ]);
+                }
+                }
+
+                // cek packages
+                if (isset($data['packages'])) {
+                    foreach ($data['packages'] as $package) {
+                        MenuPrice::create([
+                            'id_menu' => $menu->id,
+                            'id_package' => $package['package_id'],
+                            'price' => $package['price'],
+                            'created_at' => now(),
+                            'update_at' => now(),
+                        ]);
+                    }
+
+                }
+
+                
+
+                return [
+                    'is_success' => true,
+                    'message' => "Berhasil menambahkan menu baru"
+                ];
+            });
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            DB::rollBack();
+            if ($uplouded) {
+                $cloudinary->delete($uplouded['public_id']);
+            }
+            return [
+                'is_success' => false,
+                'message' => 'Telah Terjadi kesalahan saat ingin merubah data menu!'
+            ];
+        }
+
+    }
+
+    public function edit(
+        Menu $menu,
+        array $data,
+    ) {
+        $cloudinary = new CloudinaryClient();
+        $uplouded = null;
+        $old_public_id = $menu['image_public_id'];
+
+        if (isset($data['image'])) {
+            $uplouded = $cloudinary->uploud(
+                $data['image']->getRealPath(),
+                'menus'
+            );
+            if (!$uplouded) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak berhasil dalam mengunggah gambar!'
+                ];
+            }
+        }
+
+        try {
+
+            return DB::transaction(function () use ($cloudinary, $uplouded, $menu, $data, $old_public_id) {
+                // ini saya gak pakai ai ya!, emng pengen nulis komen aja, biar tau todo nya apa aja hehe...
+
+                // apakah id dari tema berbeda? jika iya ubah
+                if ($menu['id_theme'] != $data['theme_id']) {
+                    $menu->id_theme = $data['theme_id'];
+                }
+                // dapatkan value dari status
+                $isActive = $this->getStatusActive($data['status_active']);
+                // cek category
+                if (isset($data['category_ids'])) {
+
+                    if (count($data['category_ids']) == 0) {
+                        $menu->menu_categories->each(fn($c) => $c->delete());
+                    } else {
+                        // jika datanya ada...
+                        foreach ($data['category_ids'] as $category_id) {
+                            // jika datanya blm ada create, kalo ada tapi gak ada maka hapus
+                            $category = $menu->menu_categories->filter(fn($category) => $category->categories->id === $category_id)->first();
+                            if (!$category) {
+                                MenuCategory::create([
+                                    'id_menu' => $menu->id,
+                                    'id_category' => $category_id,
+                                    'created_at' => now(),
+                                    'update_at' => now(),
+                                ]);
+                            }
+                        }
+                        $categories = $menu->menu_categories()->get();
+                        $must_deleted_categories = $categories->filter(fn($c) => !in_array($c->categories->id, $data['category_ids']));
+                        foreach ($must_deleted_categories as $delete_c) {
+                            $delete_c->delete();
+                        }
+                    }
+
+                }
+                // cek packages
+                if (isset($data['packages'])) {
+                    foreach ($data['packages'] as $package) {
+                        $price = $menu->prices->filter(fn($price) => $price->package->id === $package['package_id'])->first();
+                        if ($price) {
+                            if($package['price'] <= 0 ){
+                                $price->delete();
+                            }else{
+                                $price->price = $package['price'];
+                                $price->save();
+                            }
+                        } else {
+                            MenuPrice::create([
+                                'id_menu' => $menu->id,
+                                'id_package' => $package['package_id'],
+                                'price' => $package['price'],
+                                'created_at' => now(),
+                                'update_at' => now(),
+                            ]);
+                        }
+                    }
+
+                }
+                // change the other stuff...
+                $menu->name = $data['name'];
+                $menu->description = $data['description'];
+                $menu->side_dish = $data['side_dish'];
+                $menu->vegetable = $data['vegetable'] ?? $menu->vegetable;
+                $menu->chili_sauce = $data['sauce'] ?? $menu->chili_sauce;
+                $menu->fruit = $data['fruit'] ?? $menu->fruit;
+                $menu->is_active = $isActive;
+                if ($uplouded) {
+                    $menu->image_url = $uplouded['secure_url'];
+                    $menu->image_public_id = $uplouded['public_id'];
+                }
+                // save data menu
+                $menu->save();
+                if ($uplouded) {
+                    $deleted = $cloudinary->delete($old_public_id);
+                }
+
+                $message = $uplouded ? 'Berhasil Merubah Data Menu & Mengunggah Gambar Baru!' : 'Berhasil Merubah Data Menu!';
+
+                return [
+                    'is_success' => true,
+                    'message' => $message
+                ];
+            });
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            DB::rollBack();
+            if ($uplouded) {
+                $cloudinary->delete($uplouded['public_id']);
+            }
+            return [
+                'is_success' => false,
+                'message' => 'Telah Terjadi kesalahan saat ingin merubah data menu!'
+            ];
+        }
+
+    }
+
+    public function delete()
+    {
+    }
+
+    private function getStatusActive($status_active)
+    {
+        return strtolower($status_active) === 'active' ? 1 : 0;
     }
 
 }

@@ -16,13 +16,17 @@ class ThemeService
 
     public function all(
         string|null $search = null,
-        $limit = 5
+        $limit = 5,
+        bool $is_has_limit = false,
     ) {
-        return Theme::when($search, function ($query, $search) {
+        $themes = Theme::when($search, function ($query, $search) {
             $search = strtolower($search);
             return $query->whereRaw('LOWER(name) LIKE ?', "%$search%");
-        })
-            ->paginate($limit);
+        });
+        if($is_has_limit){
+            return $themes->paginate($limit);
+        }
+        return $themes->get();
     }
 
     public function detail(string $id)

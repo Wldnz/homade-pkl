@@ -8,12 +8,16 @@ class CategoryService{
     public function all(
         string|null $search = null,
         $limit = 3,
+        bool $is_has_limit = false,
     ){
-        return Category::when($search, function($query, $search){
+        $categories = Category::when($search, function($query, $search){
             $search = strtolower($search);
             return $query->whereRaw('LOWER(name) LIKE ?',"%$search%");
-        })
-        ->paginate($limit);
+        });
+        if($is_has_limit){
+            return $categories->paginate($limit);
+        }
+        return $categories->get();
     }
 
     public function detail(string $id){

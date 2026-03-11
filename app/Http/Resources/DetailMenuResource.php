@@ -24,7 +24,8 @@ class DetailMenuResource extends JsonResource
             'addon' => [
                 'side_dish' => $menu->side_dish,
                 'vegetable' => $menu->vegetable,
-                'sauce' => $menu->chili_sauce
+                'sauce' => $menu->chili_sauce,
+                'fruit' => $menu->fruit,
             ],
             'categories' => $menu->menu_categories->map(function($category){
                 return $category->categories->name;

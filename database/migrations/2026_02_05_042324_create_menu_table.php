@@ -18,8 +18,10 @@ return new class extends Migration
             $table->text("description");
             $table->string("vegetable", 120);
             $table->string("side_dish", 120);
-            $table->string("chili_sauce", 120);
+            $table->string("chili_sauce", 120)->nullable();
+            $table->string('fruit', 120)->nullable();
             $table->string("image_url", 265);
+            $table->string("image_public_id", 255);
             $table->boolean("is_active")->default(true);
             $table->timestamps();
         });

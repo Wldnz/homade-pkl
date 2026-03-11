@@ -99,7 +99,10 @@ Route::middleware([
     // menu
     Route::get('/menus', [\App\Http\Controllers\Admin\MenuController::class, 'index'])->name('menus');
     Route::get('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'detail'])->name('detail-menu');
-    Route::get('/menu-create', [\App\Http\Controllers\Admin\MenuController::class, 'store'])->name('add-menu');
+    Route::get('/menu-create', [\App\Http\Controllers\Admin\MenuController::class, 'store'])->name('add-menu-page');
+    Route::post('/menu-create', [\App\Http\Controllers\Admin\MenuController::class, 'storeHandler'])->name('add-menu');
+    Route::put('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'editHandler'])->name('edit-menu');
+    Route::delete('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'deleteHandler'])->name('delete-menu');
     // jadwal menu
     Route::get('/schedules', [\App\Http\Controllers\Admin\ScheduleController::class, 'index'])->name('schedules');
     Route::get('/schedules/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'detail'])->name('detail-schedule');

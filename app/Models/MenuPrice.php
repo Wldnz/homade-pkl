@@ -9,6 +9,19 @@ class MenuPrice extends Model
 {
     use HasUuids;
 
+     /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'id_menu',
+        'id_package',
+        'price',
+        'created_at',
+        'updated_at'
+    ];
+
     public function menu(){
         return $this->belongsTo(Menu::class, 'id_menu')
         ->with([

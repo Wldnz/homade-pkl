@@ -21,10 +21,39 @@ class CloudinaryClient
         $this->cloudinary = new Cloudinary(Config::get('app.cloudinary_url'));
     }
 
-    public function get(string $public_id)
-    {
-        return $this->cloudinary->image($public_id);
+    public function uploud(
+        File|string $image,
+        string $folder,
+    ) {
+        try {
+            $public_id = 'image_at' . time();
+            $uploud = $this->cloudinary->uploadApi()->upload($image, [
+                'public_id' => $public_id,
+                'use_filename' => false,
+                // blm di format ke webp...
+                // sementara foldernya maish berantakan lah ya hehehe...
+                'folder' => "homade/$folder"
+            ]);
+            return $uploud;
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return null;
+        }
     }
+
+    public function delete(
+        string $public_id
+    ) {
+        try{
+            $response = $this->cloudinary->adminApi()->deleteAssets($public_id);
+            return $response['deleted'][$public_id] === 'deleted';
+        }catch(Exception $e){
+            Log::error($e->getMessage());
+            return false;
+        }
+    }
+
+    // yang bawah biarlah
 
     public function uploudPaymentProof(
         File|string $image,
