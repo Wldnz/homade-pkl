@@ -1,15 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-$font-size-s: clamp(0.4rem, 1vw, 0.85rem);
-$font-size-m: clamp(0.6rem, 1.25vw, 1rem);
-$font-size-l: clamp(0.8rem, 2vw, 1.5rem);
-$font-size-xl: clamp(0.8rem, 3.5vw, 2rem);
-$font-size-2xl: clamp(1rem, 4vw, 2.5rem);
-$font-size-3xl: clamp(3rem, 4.5vw, 3rem);
-$font-size-4xl: clamp(3rem, 5.5vw, 3.5rem);
-$font-size-5xl: clamp(3rem, 6.5vw, 4rem);
-$font-size-6xl: clamp(3rem, 7.5vw, 4.5rem);
-$font-size-7xl: clamp(3rem, 8.5vw, 5rem);
+$font-size-s:   clamp(0.7rem, 0.8vw + 0.4rem, 0.85rem); 
+$font-size-m:   clamp(0.85rem, 1vw + 0.5rem, 1.1rem);   
+$font-size-l:   clamp(1rem, 1.5vw + 0.5rem, 1.5rem);    
+$font-size-xl:  clamp(1.25rem, 2.5vw + 0.5rem, 2.25rem); 
+$font-size-2xl: clamp(1.5rem, 4vw, 3rem);              
+$font-size-3xl: clamp(1.75rem, 5vw, 4rem);             
+$font-size-4xl: clamp(2rem, 6vw, 5rem);                
+$font-size-5xl: clamp(2.25rem, 7vw, 6rem);             
+$font-size-6xl: clamp(2.5rem, 8vw, 8rem);
 
 $color-primary: #ffffff;
 $color-secondary: #EAF0F6;
@@ -29,6 +28,8 @@ $filter-text: brightness(0) saturate(100%) invert(10%) sepia(10%) saturate(0%) h
 $filter-text-secondary: brightness(0) saturate(100%) invert(53%) sepia(0%) saturate(0%) hue-rotate(98deg) brightness(91%) contrast(84%);
 $filter-red: brightness(0) saturate(100%) invert(36%) sepia(65%) saturate(1544%) hue-rotate(330deg) brightness(116%) contrast(103%);
 
+$font-size-root: 40px;
+
 *
 {
     margin: 0;
@@ -44,7 +45,23 @@ $filter-red: brightness(0) saturate(100%) invert(36%) sepia(65%) saturate(1544%)
     {
         display: none;
     }
+
+    &::placeholder
+    {
+        color: #c5c8cf;
+    }
 }
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 
 a, button, input, textarea {
   -webkit-tap-highlight-color: transparent;
@@ -70,38 +87,9 @@ body
     min-height: 100dvh;
 }
 
-.btn
-{
-    background-color: unset;
-
-    &-primary-homade
-    {
-        background-color: $color-accent;
-        color: #fff;
-        cursor: pointer;
-        transition: .1s;
-    
-        &:hover
-        {
-            filter: brightness(.9);
-        }
-
-    }
-}
-
 .text-accent
 {
     color: $color-accent;
-}
-
-.img-accent
-{
-    filter: $filter-accent;
-}
-
-.img-white
-{
-    filter: $filter-white;
 }
 
 .text-yellow
@@ -114,6 +102,16 @@ body
     color: $color-text-secondary;
 }
 
+.img-accent
+{
+    filter: $filter-accent;
+}
+
+.img-white
+{
+    filter: $filter-white;
+}
+
 .btn-primary-homade
 {
     background-color: $color-accent;
@@ -123,30 +121,16 @@ body
     height: max-content;
     width: max-content;
     padding: 10px 30px;
-
-    img
-    {
-        height: 1em;
-    }
+    color: #fff;
+    cursor: pointer;
+    transition: .1s;
 }
 
 .ratio-1 {aspect-ratio: 1/1;}
 .ratio-16 {aspect-ratio: 16/9;}
 
-.w-90
-{
-    width: 90%;
-}
-
-.h-90
-{
-    height: 90%;
-}
-
-.h-max
-{
-    height: max-content;
-}
+.h-max {height: max-content;}
+.w-max {width: max-content;}
 
 .grid-template-homade-sponsor
 {
@@ -165,6 +149,22 @@ body
 .translate-50
 {
     transform: translateY(-50px);
+}
+
+.switch
+{
+    background-color: #000;
+    transition: .1s;
+
+    .fill1 {transition: .1s; width: 0%;}
+    .fill2 {transition: .1s; width: 100%;}
+    
+    &.active
+    {
+        background-color: $color-accent;
+        .fill1 {width: 100%;}
+        .fill2 {width: 0%;}
+    }
 }
 
 .bg
@@ -241,12 +241,17 @@ body
 
     &-light-accent
     {
-        background-color: #FFF1F2;
+        background-color: #ffeced;
     }
 
     &-grey
     {
         background-color: #1c1c1c;
+    }
+
+    &-dark-grey
+    {
+        background-color: #d4d4d4;
     }
 
     &-light-grey
@@ -271,6 +276,16 @@ body
         img{object-position: bottom;}
     }
 
+    &-contact
+    {
+        background: url(../public/img/food2.webp);
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-color: #5f5f5f34;
+        background-blend-mode: lighten;
+    }
+
 }
 
 .outline-0
@@ -278,9 +293,26 @@ body
     outline: none;
 }
 
+.pop-up
+{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99;
+    background-color: #00000030;
+}
+
+.rounded-5 {border-radius: 25px;}
+
 .border-homade-1 {border: 1.5px solid $color-accent;}
 .border-homade-2 {border: 2px solid $color-accent;}
 .border-homade-3 {border: 3px solid $color-accent;}
+
+.border-black-1 {border: 1.5px solid #000;}
+.border-black-2 {border: 2px solid #000;}
+.border-black-3 {border: 3px solid #000;}
 
 .border-grey-1 {border: 1.5px solid #DBDFE9}
 .border-grey-2 {border: 2px solid #DBDFE9;}
@@ -299,7 +331,7 @@ body
         background-color: $color-accent;
         content: "";
         left: 0;
-        bottom: 0;
+        bottom: -1px;
     }
 }
 
@@ -323,12 +355,14 @@ body
 
 .cursor
 {
-    &-default {cursor: default;}
-    &-pointer {cursor: pointer;}
-    &-text {cursor: text;}
+    &-default {cursor: default !important;}
+    &-pointer {cursor: pointer !important;}
+    &-text {cursor: text !important;}
 }
 
 .fw-black {font-weight: 800;}
+
+.d-none2 {display: none;}
 
 .h-1em {height: 1em;}
 .h-11em {height: 1.1em;}
@@ -337,24 +371,63 @@ body
 .h-2em {height: 2em;}
 .h-3em {height: 3em;}
 
-.w-65 {width: 65%;}
-.w-70 {width: 70%;}
-.w-125 {width: 125%;}
-.w-150 {width: 150%;}
-.w-175 {width: 175%;}
-.w-200 {width: 200%;}
 
-.h-65 {height: 65%;}
-.h-70 {height: 70%;}
-.h-125 {height: 125%;}
-.h-150 {height: 150%;}
-.h-175 {height: 175%;}
-.h-200 {height: 200%;}
+$fsc-map: (
+  1: $font-size-s,
+  2: $font-size-m,
+  3: $font-size-l,
+  4: $font-size-xl,
+  5: $font-size-2xl,
+  6: $font-size-3xl,
+  7: $font-size-4xl,
+  8: $font-size-5xl,
+  9: $font-size-6xl
+);
 
-.fsc-1 { font-size: $font-size-s;}
-.fsc-2 { font-size: $font-size-m;}
-.fsc-3 { font-size: $font-size-l;}
-.fsc-4 { font-size: $font-size-xl;}
-.fsc-5 { font-size: $font-size-2xl;}
-.fsc-6 { font-size: $font-size-3xl;}
-.fsc-7 { font-size: $font-size-4xl;}
+$custom-scales: (10, 20, 30, 40, 51, 60, 65, 70, 75, 76, 80, 90, 101, 125, 150, 175, 200);
+
+$breakpoints: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+);
+
+@each $level, $size in $fsc-map {
+  .fsc-#{$level} {
+    font-size: $size !important;
+  }
+}
+
+@each $bp, $width in $breakpoints {
+  @media (min-width: $width) {
+    @each $level, $size in $fsc-map {
+      .fsc-#{$bp}-#{$level} {
+        font-size: $size !important;
+      }
+    }
+  }
+}
+
+@each $value in $custom-scales {
+  .w-#{$value} { 
+    width: #{$value + '%' + ' !important'}; 
+  }
+  .h-#{$value} { 
+    height: #{$value + '%' + ' !important'}; 
+  }
+}
+
+@each $bp, $width in $breakpoints {
+  @media (min-width: $width) {
+    @each $value in $custom-scales {
+      .w-#{$bp}-#{$value} { 
+        width: #{$value + '%' + ' !important'}; 
+      }
+      .h-#{$bp}-#{$value} { 
+        height: #{$value + '%' + ' !important'}; 
+      }
+    }
+  }
+}

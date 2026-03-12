@@ -3,14 +3,14 @@
     $placeImg = "https://placehold.co/400";
 @endphp
 
-<nav class="bg-nav h-90 flex-shrink-0 d-flex flex-column align-items-center justify-content-center">
+<nav class="bg-nav h-90 flex-shrink-0 d-flex flex-column align-items-center justify-content-center overflow-hidden">
     <div class="d-flex mb-5 w-100 gap-5 h-40px align-items-center justify-content-center">
 
         <a href="/" class="{{ $page == "home" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Home</a>
         <a href="/menus" class="{{ $page == "menu" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Menu</a>
         <a href="/schedule" class="{{ $page == "schedule" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Jadwal</a>
         <a href="/profile" class="{{ $page == "profile" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Profil</a>
-        <a href="/" class="{{ $page == "contact" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Kontak</a>
+        <a href="/contact" class="{{ $page == "contact" ? 'text-yellow' : 'text-white fw-light' }} fsc-5 me-3">Kontak</a>
         
         <a href="/" class="h-100 ratio-1"><img src="{{ $placeImg }}" class="rounded-circle" alt=""></a>
     </div>
