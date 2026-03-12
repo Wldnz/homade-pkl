@@ -18,7 +18,6 @@ License: For each use you must have a valid license purchased only from above li
 		'sass/app.scss',
 		'sass/metronic/style.scss',
 		'resources/js/app.js',
-		'resources/js/metronic/scripts.js'
 	])
 	<meta charset="utf-8" />
 	<meta name="description"

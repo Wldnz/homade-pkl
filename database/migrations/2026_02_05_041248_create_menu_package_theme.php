@@ -29,6 +29,7 @@ return new class extends Migration {
             $table->text("description");
             $table->integer("minimum_order");
             $table->string("image_url", 265);
+            $table->string("image_public_id", 265);
             $table->timestamps();
         });
 

@@ -94,9 +94,18 @@ Route::middleware([
     
     Route::get('/category-create', [\App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('add-category-page');
     Route::post('/category', [\App\Http\Controllers\Admin\CategoryController::class, 'storeHandler'])->name('add-category');
-      Route::put('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'editHandler'])->name('edit-category');
-       Route::delete('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('delete-category');
-    // menu
+    Route::put('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'editHandler'])->name('edit-category');
+    Route::delete('/categories/{id}', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('delete-category');
+    
+    // package
+    Route::get('/packages', [\App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages');
+    Route::get('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'detail'])->name('detail-package');
+    Route::get('/package-create', [\App\Http\Controllers\Admin\PackageController::class, 'store'])->name('add-package-page');
+    Route::post('/package-create', [\App\Http\Controllers\Admin\PackageController::class, 'storeHandler'])->name('add-package');
+    Route::put('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'editHandler'])->name('edit-package');
+    Route::delete('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'deleteHandler'])->name('delete-package');
+    
+       // menu
     Route::get('/menus', [\App\Http\Controllers\Admin\MenuController::class, 'index'])->name('menus');
     Route::get('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'detail'])->name('detail-menu');
     Route::get('/menu-create', [\App\Http\Controllers\Admin\MenuController::class, 'store'])->name('add-menu-page');
