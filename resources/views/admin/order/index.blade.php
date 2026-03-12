@@ -18,7 +18,6 @@ License: For each use you must have a valid license purchased only from above li
 		'sass/app.scss',
 		'sass/metronic/style.scss',
 		'resources/js/app.js',
-		'resources/js/metronic/scripts.js'
 	])
 	<meta charset="utf-8" />
 	<meta name="description"
@@ -51,6 +50,7 @@ License: For each use you must have a valid license purchased only from above li
 <!--begin::Body-->
 
 <body id="kt_app_body" data-kt-app-layout="dark-sidebar" data-kt-app-header-fixed="true">
+	<a href="{{ route('admin.add-order-page') }}">Tambahkan Transaksi</a>
 	@if ($response['status'] === 'success')
 		<table class="table table-striped">
 		<thead>

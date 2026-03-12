@@ -17,7 +17,7 @@ class ThemeService
     public function all(
         string|null $search = null,
         $limit = 5,
-        bool $is_has_limit = false,
+        bool $is_has_limit = true,
     ) {
         $themes = Theme::when($search, function ($query, $search) {
             $search = strtolower($search);

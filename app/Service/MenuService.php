@@ -25,6 +25,7 @@ class MenuService
         string $category = null,
         int $limit = 10,
         string|null $status_active = 'active',
+        bool $is_has_limit = true,
     ) {
 
         $menus = Menu::with(['menu_categories', 'theme'])
@@ -46,10 +47,13 @@ class MenuService
             ->when($status_active != 'all', function ($query) use ($status_active) {
                 $is_active = $this->getStatusActive($status_active);
                 return $query->where('is_active', $is_active);
-            })
-            ->paginate($limit);
+            });
 
-        return $menus;
+        if ($is_has_limit) {
+            return $menus->paginate($limit);
+        }
+
+        return $menus->get();
 
     }
 
@@ -65,8 +69,8 @@ class MenuService
         return Menu::with([
             'menu_categories',
             'theme',
-            'prices' => function($query){
-                if(!auth()->user() || !auth()->user()->isAdminOrOwner()){
+            'prices' => function ($query) {
+                if (!auth()->user() || !auth()->user()->isAdminOrOwner()) {
                     return $query->where('price', '>', 0);
                 }
                 return $query;
@@ -125,17 +129,29 @@ class MenuService
         return $schedules;
     }
 
-    public function getByDate(Carbon $date)
+    public function getByDate(Carbon|array $date)
     {
-        return Menu::with([
-            'menu_categories',
-            'theme',
-            'prices',
-            'schedule',
-        ])
-            ->whereHas('schedule', function ($query) use ($date) {
-                return $query->whereDate('date_at', $date);
-            })->get();
+
+        $schedules = MenuSchedule::with([
+            'menu',
+        ])->when(gettype($date) === "array", function($query) use($date){
+            return $query->whereBetween('date_at', $date);
+        })->get();
+
+        if(gettype($date) === 'array'){
+            $schedules = $schedules->groupBy(function($schedule){
+                return $schedule->date_at;
+            })
+            ->map(function($schedule, $key){
+                return [
+                    'date' => Carbon::parse($key)->format('d-m-Y'),
+                    'menus' => $schedule->map(function($s){
+                        return $s->menu;
+                    }),
+                ];
+            });
+        }
+        return $schedules;
     }
 
     public function menuNonWeekly(
@@ -171,55 +187,6 @@ class MenuService
                 return $query->where('date_at', '<', now()->addDays(1));
             })
             ->paginate($limit);
-    }
-
-    public function getByOrderedMenu(array $items)
-    {
-        // ini gw butuh id_prices, quantity, sama ini
-
-        $items = [
-            'prices_id' => [],
-            'items' => $items,
-            'menus' => []
-        ];
-
-        foreach ($items['items'] as $item) {
-            foreach ($item['packages'] as $package) {
-                array_push($items['prices_id'], $package['id']);
-            }
-        }
-
-        $menus = Menu::with([
-            'prices' => fn($query) => $query->whereIn('id', $items['prices_id']),
-            'weekly'
-        ])->whereHas('prices', function ($query) use ($items) {
-            return $query->whereIn('id', $items['prices_id']);
-        })
-            ->get();
-
-        $menus = $menus->map(function ($menu) use ($items) {
-            $item = array_find($items['items'], function ($item) use ($menu) {
-                return $menu->id === $item['id'];
-            });
-            if ($item) {
-                $menu->prices = $menu->prices->map(function ($price) use ($item) {
-                    $ordered = array_find($item['packages'], function ($orderedPackage) use ($price) {
-                        return $price->id === $orderedPackage['id'];
-                    });
-                    if ($ordered) {
-                        $price->note = $ordered['note'];
-                        $price->quantity = $ordered['quantity'];
-                        $price->total_price = $ordered['quantity'] * $price->price;
-                    };
-                    return $price;
-                });
-            }
-            $menu->category = $menu->weekly->isEmpty() ? 'non-weekly' : 'weekly';
-            return $menu;
-        });
-
-
-        return $menus;
     }
 
     public function getOrderedMenu(
@@ -310,15 +277,15 @@ class MenuService
                 $menu->setUpdatedAt(now());
                 $menu->save();
 
-                if(isset($data['category_ids'])){
+                if (isset($data['category_ids'])) {
                     foreach ($data['category_ids'] as $category_id) {
-                    MenuCategory::create([
-                        'id_menu' => $menu->id,
-                        'id_category' => $category_id,
-                        'created_at' => now(),
-                        'update_at' => now(),
-                    ]);
-                }
+                        MenuCategory::create([
+                            'id_menu' => $menu->id,
+                            'id_category' => $category_id,
+                            'created_at' => now(),
+                            'update_at' => now(),
+                        ]);
+                    }
                 }
 
                 // cek packages
@@ -335,7 +302,7 @@ class MenuService
 
                 }
 
-                
+
 
                 return [
                     'is_success' => true,
@@ -421,9 +388,9 @@ class MenuService
                     foreach ($data['packages'] as $package) {
                         $price = $menu->prices->filter(fn($price) => $price->package->id === $package['package_id'])->first();
                         if ($price) {
-                            if($package['price'] <= 0 ){
+                            if ($package['price'] <= 0) {
                                 $price->delete();
-                            }else{
+                            } else {
                                 $price->price = $package['price'];
                                 $price->save();
                             }
@@ -481,6 +448,45 @@ class MenuService
 
     public function delete()
     {
+    }
+
+    public function saveWeeklyMenu(
+        string $start_date,
+        string $end_date,
+        array|null $data
+    ){
+        try{
+
+            return DB::transaction(function() use ($start_date, $end_date, $data){
+                $schedules = MenuSchedule::whereBetween('date_at', [$start_date, $end_date])->get();
+                $schedules->each(fn ($schedule) => $schedule->delete());
+                if($data || $data && count($data) > 0){
+                    foreach($data as $key=>$menu_ids){
+                        foreach($menu_ids as $menu_id){
+                            MenuSchedule::create([
+                                'id_menu' => $menu_id,
+                                'date_at' => Carbon::parse($key),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+                $date = Carbon::parse($start_date);
+                return [
+                    'is_success' => false,
+                    'message' => 'Berhasil dalam mengubah data menu minggu ke '. $date->weekOfMonth
+                ];
+            });
+
+        }catch(Exception $e){
+            Log::error($e->getMessage());
+            Db::rollBack();
+            return [
+                'is_success' => false,
+                'message' => 'Telah Terjadi Kesalahan Saat Ingin Merubah Data Menu Mingguan!',
+            ];
+        }
     }
 
     private function getStatusActive($status_active)

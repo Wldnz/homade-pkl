@@ -8,7 +8,7 @@ class CategoryService{
     public function all(
         string|null $search = null,
         $limit = 3,
-        bool $is_has_limit = false,
+        bool $is_has_limit = true,
     ){
         $categories = Category::when($search, function($query, $search){
             $search = strtolower($search);

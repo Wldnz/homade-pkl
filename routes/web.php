@@ -105,12 +105,13 @@ Route::middleware([
     Route::delete('/menus/{id}', [\App\Http\Controllers\Admin\MenuController::class, 'deleteHandler'])->name('delete-menu');
     // jadwal menu
     Route::get('/schedules', [\App\Http\Controllers\Admin\ScheduleController::class, 'index'])->name('schedules');
-    Route::get('/schedules/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'detail'])->name('detail-schedule');
-    Route::get('/schedules', [\App\Http\Controllers\Admin\ScheduleController::class, 'store'])->name('add-schedule');
+    // Route::get('/schedules/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'detail'])->name('detail-schedule');
+    Route::post('/schedules', [\App\Http\Controllers\Admin\ScheduleController::class, 'storeOrUpdateHandler'])->name('add-or-update-schedules');
     // pemesanan
     Route::get('/orders', [\App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('orders');
     Route::get('/orders/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'detail'])->name('detail-order');
-    Route::get('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order');
+    Route::get('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order-page');
+    Route::post('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'storeHandler'])->name('add-order');
 
     // note: id yang diberikan adalah id transaksi
     Route::put('/order/change-shipping-cost/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeShippingCostHandler'])->name('change-shipping-cost');
