@@ -18,6 +18,7 @@ use App\TransactionResponse;
 use App\Utils\TransactionHelper;
 use Carbon\Carbon;
 use Date;
+use ErrorException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -128,92 +129,12 @@ class TransactionController extends Controller
     public function checkout(Request $request)
     {
         try {
-            // checkout sesuai kategori, jika kategorinya adalah pre-order maka deliver_atnya harus di anuin
-            $validator = Validator::make($request->all(), [
-                'items' => 'array|required',
-                'items.*.id' => 'uuid|required',
-                'items.*.packages' => 'array|required',
-                'items.*.packages.*.id' => 'uuid|required',
-                'items.*.packages.*.quantity' => 'int|required',
-                'delivery_at' => ['required', Rule::date()->afterToday()]
-            ], [
-                'required' => 'Membutuhkan Data: :attribute!',
-                'array' => ':attribute harus berupa array',
-                'uuid' => ':attribute harus berupa uuid',
-                'integer' => ':attribute harus berupa bilangan bulat',
-                'date' => ':attribute harus berupa tanggal yang valid',
-                'after' => ':attribute minimal adalah besok hari'
-            ], [
-                'items' => 'List Menu Yang Dipesan',
-                'items.*.id' => 'ID Menu',
-                'items.*.packages' => 'List Paket Menu',
-                'items.*.packages.*.id' => 'ID Paket Menu',
-                'items.*.packages.*.quantity' => 'Jumlah Pemesanan',
-                'delivery_at' => 'Tanggal Pengiriman'
-            ]);
-
-            if ($validator->fails()) {
-                return $this->responseData->create(
-                    'Data Yang Diberikan Belum Valid',
-                    errors: $validator->errors()->toArray(),
-                    status: 'warning',
-                    status_code: 422
-                );
-            }
-
-            // mendapatkan menu dari paket menu yang dipilih
-            $delivery_at = Carbon::parse($request->delivery_at);
-            $menus = $this->menuService->getOrderedMenu($request->items, $delivery_at);
-
-            if ($menus->isEmpty()) {
-                return $this->responseData->create(
-                    'Tidak dapat menemukan menu yang dipesan',
-                    status: 'warning',
-                    status_code: 404
-                );
-            }
-
-            // mengidentifikasi kategori
-            $category = $this->transactionHelper->getCategoryTransaction($menus);
-            // melakukan pengecekan terlebuh dahulu apakah sekarang sudah di jam 3 sore atau blm
-            if ($category == TransactionCategory::ORDER && !$this->transactionHelper->canOrderAtThisTime($delivery_at)) {
-                return $this->responseData->create(
-                    'Maaf, kami sudah menutup pemesanan untuk orderan menu mingguan pada besok hari',
-                    status: 'warning',
-                    status_code: 400
-                );
-            }
-            // melakukan pengecekan terkait setiap minimal_pemesanan
-            $isPassedMiniumOrder = $this->transactionHelper->getMinimumOrder($menus, $category, $delivery_at);
-            if ($isPassedMiniumOrder['status'] !== 'success') {
-                return $this->responseData->create(
-                    $isPassedMiniumOrder['message'],
-                    status: $isPassedMiniumOrder['status'],
-                    status_code: $isPassedMiniumOrder['status_code'],
-                );
-            }
-            // membuat summary
-            $address = $this->userAddressService->all();
-
-            // return $request->items;
-
-            return $this->responseData->create(
-                'Berhasil Membuatkan Data Check-Out',
-                data: [
-                    'transaction' => [
-                        'sub_total' => $this->transactionHelper->countTotalPrice($menus),
-                        'total_item' => $menus->count(),
-                        'shipping_cost' => 0,
-                        'category' => $category,
-                    ],
-                    'delivery_info' => [
-                        'delivery_at' => $delivery_at,
-                        'user_address' => UserAddressResource::collection($address),
-                    ],
-                    'summary_orders' => [
-                        'items' => SummaryMenuResource::collection($menus),
-                    ],
-                ]
+           
+            // saya buatkan function / handler pre checkout untuk memudahkan jika ada perubahan dalam satu function yaw!
+            return $this->transactionHelper->checkout(
+                $request,
+                is_json:true,
+                is_pre_checkout:true
             );
 
         } catch (Exception $e) {
@@ -228,111 +149,31 @@ class TransactionController extends Controller
     public function create(Request $request)
     {
         try {
-            // checkout sesuai kategori, jika kategorinya adalah pre-order maka deliver_atnya harus di anuin
-            $validator = Validator::make($request->all(), [
-                'items' => 'array|required',
-                'items.*.id' => 'uuid|required',
-                'items.*.packages' => 'array|required',
-                'items.*.packages.*.id' => 'uuid|required',
-                'items.*.packages.*.quantity' => 'int|required',
-                'user_address_id' => 'uuid|required',
-                'delivery_at' => ['required', Rule::date()->afterToday()]
-            ], [
-                'required' => 'Membutuhkan Data: :attribute!',
-                'array' => ':attribute harus berupa array',
-                'uuid' => ':attribute harus berupa uuid',
-                'integer' => ':attribute harus berupa bilangan bulat',
-                'date' => ':attribute harus berupa tanggal yang valid',
-                'after' => ':attribute minimal adalah besok hari'
-            ], [
-                'items' => 'List Menu Yang Dipesan',
-                'items.*.id' => 'ID Menu',
-                'items.*.packages' => 'List Paket Menu',
-                'items.*.packages.*.id' => 'ID Paket Menu',
-                'items.*.packages.*.quantity' => 'Jumlah Pemesanan',
-                'delivery_at' => 'Tanggal Pengiriman'
-            ]);
 
-            if ($validator->fails()) {
-                return $this->responseData->create(
-                    'Data Yang Diberikan Belum Valid',
-                    errors: $validator->errors()->toArray(),
-                    status: 'warning',
-                    status_code: 422
+            // validasi sudah ada disini semua ....
+            $pre_transction_data  = $this->transactionHelper->checkout(
+                $request,
+            );
+
+            if($pre_transction_data['status'] !== 'success'){
+                return response()->json(
+                    $pre_transction_data,
+                    $pre_transction_data['status_code']
                 );
             }
 
-            // mendapatkan menu dari paket menu yang dipilih
-            $delivery_at = Carbon::parse($request->delivery_at);
-            $menus = $this->menuService->getOrderedMenu($request->items, $delivery_at);
+            $created_transaction_info = $this->transactionService->create($pre_transction_data);
 
-            if ($menus->isEmpty()) {
-                return $this->responseData->create(
-                    'Tidak dapat menemukan menu yang dipesan',
-                    status: 'warning',
-                    status_code: 404
-                );
+            if(!$created_transaction_info['is_success']){
+                throw new ErrorException($created_transaction_info['message']);
             }
 
-            // mengidentifikasi kategori
-            $category = $this->transactionHelper->getCategoryTransaction($menus);
-            // melakukan pengecekan terlebuh dahulu apakah sekarang sudah di jam 3 sore atau blm
-            if ($category == TransactionCategory::ORDER && !$this->transactionHelper->canOrderAtThisTime($delivery_at)) {
-                return $this->responseData->create(
-                    'Maaf, kami sudah menutup pemesanan untuk orderan menu mingguan pada besok hari',
-                    status: 'warning',
-                    status_code: 400
-                );
-            }
-            // melakukan pengecekan terkait setiap minimal_pemesanan
-            $isPassedMiniumOrder = $this->transactionHelper->getMinimumOrder($menus, $category, $delivery_at);
-            if ($isPassedMiniumOrder['status'] !== 'success') {
-                return $this->responseData->create(
-                    $isPassedMiniumOrder['message'],
-                    status: $isPassedMiniumOrder['status'],
-                    status_code: $isPassedMiniumOrder['status_code'],
-                );
-            }
-
-            // buat transaksi disni bang
-
-            $user = auth()->user();
-            $total_price = $this->transactionHelper->countTotalPrice($menus);
-            $shipping_cost = 0;
-            
-            $address = $this->userAddressService->byID($request->user_address_id);
-
-            if(!$address){
-                return $this->responseData->create(
-                    'Tidak dapat menemukan alamat cusomter',
-                    status: 'warning',
-                    status_code: 404,
-                );
-            }
-
-            $transaction = [
-                'transaction' => [
-                    'id_user' => $user->id,
-                    'subtotal' => $total_price + $shipping_cost,
-                    'shipping_cost' => $shipping_cost,
-                    'total_price' => $total_price,
-                    'category' => $category,
-                    'delivery_at' => $delivery_at,
-                    'note' => $request->note ?? ''
-                ],
-                'items' => $menus,
-                'address' => $address,
-            ];
-
-            $transaction = $this->transactionService->create($transaction);
-
-            Mail::to($user->email)->send(new SuccessCreateTransactionEmail($transaction));
-
-            // kirim ke email admin, emailnyayang mana?
+            // pake que que?
+            Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
 
             return $this->responseData->create(
                 'Berhasil membuat transaksi pemesanan',
-                $transaction,
+                $created_transaction_info['transaction'],
                 status_code: 201,
             );
 

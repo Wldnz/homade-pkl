@@ -109,7 +109,7 @@ class PackageController extends Controller
     {
         try {
 
-            $validator = Validator::make([
+            $validator = Validator::make($request->all(),[
                 'name' => 'required|string|min:1',
                 'description' => 'required|string|min:10',
                 'image' => 'required|image|mimes:jpg,png,jpeg,webp|max:2048',
@@ -179,7 +179,7 @@ class PackageController extends Controller
     {
         try {
 
-            $validator = Validator::make([
+            $validator = Validator::make($request->all(),[
                 'name' => 'required|string|min:1',
                 'description' => 'required|string|min:10',
                 'image' => 'image|mimes:jpg,png,jpeg,webp|max:2048',

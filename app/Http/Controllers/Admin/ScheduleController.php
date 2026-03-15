@@ -46,7 +46,7 @@ class ScheduleController extends Controller
                     'current_month' => $currentDate->monthName,
                     'current_date' => $currentDate->format('d-m-Y'),
                     'menus' => MenuResource::collection($this->menuService->all(is_has_limit: false))->toArray($request),
-                    'schedules' => MenuScheduleResource::collection($this->menuService->getByDate([$startOfWeek, $endOfWeek]))->toArray($request)
+                    'schedules' => MenuScheduleResource::collection($this->menuService->getByMultipleDay([$startOfWeek, $endOfWeek]))->toArray($request)
                 ],
                 isJson: false,
             );

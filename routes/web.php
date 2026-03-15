@@ -62,7 +62,11 @@ Route::name('user.')->group(function () {
 
         });
 
-        Route::post('/checkout', [TransactionController::class, 'checkout'])->name('checkout');
+        Route::get('/checkout', [TransactionController::class, 'checkout'])->name('checkout-page');
+        Route::post('/checkout', [TransactionController::class, 'preCheckoutHandler'])->name('checkout');
+
+        Route::post('/transaction', [TransactionController::class, 'createTransaction'])->name('create-order');
+        Route::get('/after-transaction', [TransactionController::class, 'afterTransactionHandler'])->name('after-transaction');
 
         Route::get('/signout', [AuthController::class, 'signout'])->name('signout');
     });
@@ -133,6 +137,21 @@ Route::middleware([
     Route::put('/order/status-delivery/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeDeliveryStatusHandler'])->name('change-status-delivery-order');
     // complete the transaction
     Route::post('/order/complete/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'completeTheTransactionHandler'])->name('complete-order');
+
+    // Partner / Perusahaan Yang Bekerja Sama
+    Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index'])->name('partners');
+    Route::get('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'detail'])->name('detail-partner');
+    Route::get('/partner-create', [\App\Http\Controllers\Admin\PartnerController::class, 'store'])->name('add-partner-page');
+    Route::post('/partner-create', [\App\Http\Controllers\Admin\PartnerController::class, 'storeHandler'])->name('add-partner');
+    Route::put('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'editHandler'])->name('edit-partner');
+    Route::delete('/partners/{id}', [\App\Http\Controllers\Admin\PartnerController::class, 'deleteHandler'])->name('delete-partner');
+    // Achivement / Prestasi
+    Route::get('/achievements', [\App\Http\Controllers\Admin\AchievementController::class, 'index'])->name('achievements');
+    Route::get('/achievements/{id}', [\App\Http\Controllers\Admin\AchievementController::class, 'detail'])->name('detail-achievement');
+    Route::get('/achievement-create', [\App\Http\Controllers\Admin\AchievementController::class, 'store'])->name('add-achievement-page');
+    Route::post('/achievement-create', [\App\Http\Controllers\Admin\AchievementController::class, 'storeHandler'])->name('add-achievement');
+    Route::put('/achievements/{id}', [\App\Http\Controllers\Admin\AchievementController::class, 'editHandler'])->name('edit-achievement');
+    Route::delete('/achievements/{id}', [\App\Http\Controllers\Admin\AchievementController::class, 'deleteHandler'])->name('delete-achievement');
     // account
     Route::get('/accounts', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('accounts');
     Route::get('/accounts/{id}', [\App\Http\Controllers\Admin\AccountController::class, 'detail'])->name('detail-account');

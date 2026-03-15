@@ -187,10 +187,12 @@ class MenuController extends Controller
             
             $date_at = Carbon::parse($date_at);
 
-            $menus = $this->menuService->getByDate($date_at);
+            $menus = $this->menuService->getBySingleDate($date_at);
+
+            // $date_at
 
             if ($menus->isEmpty()) {
-               $response = $this->responseData->create(
+                $response = $this->responseData->create(
                     'Tidak dapat menemukan menu mingguan pada tanggal ini',
                     status: 'warning',
                     status_code: 404,
@@ -199,30 +201,30 @@ class MenuController extends Controller
                 return view('order.select-menu-weekly', compact('response'));
             }
 
-            // kurang jam aja
-            if ($date_at < now()->addDays(1)) {
-                $response = $this->responseData->create(
+            // syarat & kondisi dari perusahaan cuy..
+            if ($date_at->isTomorrow() && $date_at->greaterThan(now()->addDays(1)->setTime(15,0,0))) {
+                // returnnya apa namanya 404 atau 200 nih? tinggal liat categorynya aja si
+               $response = $this->responseData->create(
                     'Anda sudah tidak bisa menu mingguan pada tanggal ini, dan jika ingin memesan minimal 50 box',
-                    [
-                        'date' => $date_at,
-                        'category' => TransactionCategory::PRE_ORDER,
-                        'items' => SelectMenuResource::collection($menus)
-                    ],
+                    // [
+                    //     'date' => $date_at,
+                    //     'category' => TransactionCategory::PRE_ORDER,
+                    //     'menus' => $menus,
+                    //     // 'items' => SelectMenuResource::collection($menus)
+                    // ],
                     status: 'warning',
-                    status_code: 404,
+                    status_code: 400,
                     isJson: true
                 );
                 return view('order.select-menu-weekly', compact('response'));
             }
 
-            // validasi jam 3 sore
-
-            return $response = $this->responseData->create(
+            $response = $this->responseData->create(
                 'Berhasil Menemukan Menu Mingguan Pada Tanggal Ini',
                 [
-                    'date' => $date_at,
+                    'date' => $date_at->format('d-m-Y'),
                     'category' => TransactionCategory::ORDER,
-                    'items' => SelectMenuResource::collection($menus)
+                    'items' => SelectMenuResource::collection($menus)->toArray($request)
                 ],
                 isJson: false,
             );

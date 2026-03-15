@@ -129,28 +129,34 @@ class MenuService
         return $schedules;
     }
 
-    public function getByDate(Carbon|array $date)
+    public function getBySingleDate(Carbon|string $date)
     {
+        return Menu::with([
+            'theme',
+            'menu_categories',
+            'prices',
+            'schedule'
+        ])
+        ->whereHas('schedule', function($query)use($date){
+            $query->whereDate('date_at', $date);
+        })->get();
+    }
 
+    public function getByMultipleDay(array $date)
+    {
         $schedules = MenuSchedule::with([
             'menu',
-        ])->when(gettype($date) === "array", function($query) use($date){
-            return $query->whereBetween('date_at', $date);
-        })->get();
-
-        if(gettype($date) === 'array'){
-            $schedules = $schedules->groupBy(function($schedule){
-                return $schedule->date_at;
-            })
-            ->map(function($schedule, $key){
-                return [
-                    'date' => Carbon::parse($key)->format('d-m-Y'),
-                    'menus' => $schedule->map(function($s){
-                        return $s->menu;
-                    }),
-                ];
-            });
-        }
+        ])->whereBetween('date_at', $date)->get();
+        $schedules = $schedules->groupBy(function ($schedule) {
+            return $schedule->date_at;
+        })->map(function ($schedule, $key) {
+            return [
+                'date' => Carbon::parse($key)->format('d-m-Y'),
+                'menus' => $schedule->map(function ($s) {
+                    return $s->menu;
+                }),
+            ];
+        });
         return $schedules;
     }
 
@@ -216,9 +222,9 @@ class MenuService
             })
             // tambahin validas waktu pengiriman untuk bedain mana yang weekly dan mana yang bukan
             // mendapatkan menu mingguan watknya paling lama dlu baru gas...
-            ->whereHas('schedule', function ($query) use ($delivery_at) {
-                return $query->whereDate('date_at', '<=', $delivery_at);
-            })
+            // ->whereHas('schedule', function ($query) use ($delivery_at) {
+            //     return $query->whereDate('date_at', '<=', $delivery_at);
+            // })
             ->afterQuery(function (Collection $menus) use ($items) {
                 $menus = $menus->map(function ($menu) use ($items) {
                     $item = array_find($items['items'], fn($item) => $item['id'] === $menu->id);
@@ -454,15 +460,15 @@ class MenuService
         string $start_date,
         string $end_date,
         array|null $data
-    ){
-        try{
+    ) {
+        try {
 
-            return DB::transaction(function() use ($start_date, $end_date, $data){
+            return DB::transaction(function () use ($start_date, $end_date, $data) {
                 $schedules = MenuSchedule::whereBetween('date_at', [$start_date, $end_date])->get();
-                $schedules->each(fn ($schedule) => $schedule->delete());
-                if($data || $data && count($data) > 0){
-                    foreach($data as $key=>$menu_ids){
-                        foreach($menu_ids as $menu_id){
+                $schedules->each(fn($schedule) => $schedule->delete());
+                if ($data || $data && count($data) > 0) {
+                    foreach ($data as $key => $menu_ids) {
+                        foreach ($menu_ids as $menu_id) {
                             MenuSchedule::create([
                                 'id_menu' => $menu_id,
                                 'date_at' => Carbon::parse($key),
@@ -475,11 +481,11 @@ class MenuService
                 $date = Carbon::parse($start_date);
                 return [
                     'is_success' => false,
-                    'message' => 'Berhasil dalam mengubah data menu minggu ke '. $date->weekOfMonth
+                    'message' => 'Berhasil dalam mengubah data menu minggu ke ' . $date->weekOfMonth
                 ];
             });
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             Db::rollBack();
             return [

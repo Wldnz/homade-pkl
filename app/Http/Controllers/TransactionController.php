@@ -7,18 +7,23 @@ use App\Http\Resources\PaginationResource;
 use App\Http\Resources\SummaryMenuResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\UserAddressResource;
+use App\Mail\SuccessCreateTransactionEmail;
 use App\ResponseData;
 use App\Service\MenuService;
 use App\Service\TransactionService;
 use App\Service\UserAddressService;
+use App\StatusTransaction;
 use App\TransactionCategory;
 use App\Utils\TransactionHelper;
 use Carbon\Carbon;
+use ErrorException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Log;
+use Mail;
 use Validator;
+use function PHPUnit\Framework\isJson;
 
 class TransactionController extends Controller
 {
@@ -139,111 +144,42 @@ class TransactionController extends Controller
 
     public function checkout(Request $request)
     {
+        $response = session()->get('session_pre_check_out_summary_data');
+        if (!$response || $response['status'] !== 'success') {
+            $response = $response? $response : $this->responseData->create(
+                'Pastikan kamu sudah memilih menu yang ingin dipesan ya',
+                status: 'warning',
+                status_code: 400,
+                isJson:false,
+            );
+            return redirect()->route('user.schedules')->with(compact('response'));
+        }
+        // return $response;
+        return view('order.checkout', compact('response'));
+    }
+
+    public function preCheckoutHandler(Request $request)
+    {
         try {
-            // checkout sesuai kategori, jika kategorinya adalah pre-order maka deliver_atnya harus di anuin
-            $validator = Validator::make($request->all(), [
-                'items' => 'array|required',
-                'items.*.id' => 'uuid|required',
-                'items.*.packages' => 'array|required',
-                'items.*.packages.*.id' => 'uuid|required',
-                'items.*.packages.*.quantity' => 'int|required',
-                'delivery_at' => ['required', Rule::date()->afterToday()],
-            ], [
-                'required' => 'Membutuhkan Data: :attribute!',
-                'array' => ':attribute harus berupa array',
-                'uuid' => ':attribute harus berupa uuid',
-                'integer' => ':attribute harus berupa bilangan bulat',
-                'date' => ':attribute harus berupa tanggal yang valid',
-                'after' => ':attribute minimal adalah besok hari',
-            ], [
-                'items' => 'List Menu Yang Dipesan',
-                'items.*.id' => 'ID Menu',
-                'items.*.packages' => 'List Paket Menu',
-                'items.*.packages.*.id' => 'ID Paket Menu',
-                'items.*.packages.*.quantity' => 'Jumlah Pemesanan',
-                'delivery_at' => 'Tanggal Pengiriman',
-            ]);
+            // saya buatkan function / handler pre checkout untuk memudahkan jika ada perubahan dalam satu function yaw!
+            $payload_data = json_decode($request->checkout_payload, true);
+            $request->merge($payload_data);
 
-            if ($validator->fails()) {
-                $response = $this->responseData->create(
-                    'Data Yang Diberikan Belum Valid',
-                    errors: $validator->errors()->toArray(),
-                    status: 'warning',
-                    status_code: 422,
-                    isJson: false,
-                );
-
-                return view('order.checkout', compact('response'));
-            }
-
-            // mendapatkan menu dari paket menu yang dipilih
-            $delivery_at = Carbon::parse($request->delivery_at);
-            $menus = $this->menuService->getOrderedMenu($request->items, $delivery_at);
-
-            if ($menus->isEmpty()) {
-                $response = $this->responseData->create(
-                    'Tidak dapat menemukan menu yang dipesan',
-                    status: 'warning',
-                    status_code: 404,
-                    isJson: false
-                );
-
-                return view('order.checkout', compact('response'));
-            }
-
-            // mengidentifikasi kategori
-            $category = $this->transactionHelper->getCategoryTransaction($menus);
-            // melakukan pengecekan terlebuh dahulu apakah sekarang sudah di jam 3 sore atau blm
-            if ($category == TransactionCategory::ORDER && !$this->transactionHelper->canOrderAtThisTime($delivery_at)) {
-                $response = $this->responseData->create(
-                    'Maaf, kami sudah menutup pemesanan untuk orderan menu mingguan pada besok hari',
-                    status: 'warning',
-                    status_code: 400,
-                    isJson: false
-                );
-
-                return view('order.checkout', compact('response'));
-            }
-            // melakukan pengecekan terkait setiap minimal_pemesanan
-            $isPassedMiniumOrder = $this->transactionHelper->getMinimumOrder($menus, $category, $delivery_at);
-            if ($isPassedMiniumOrder['status'] !== 'success') {
-                $response = $this->responseData->create(
-                    $isPassedMiniumOrder['message'],
-                    status: $isPassedMiniumOrder['status'],
-                    status_code: $isPassedMiniumOrder['status_code'],
-                    isJson: false,
-                );
-
-                return view('order.checkout', compact('response'));
-            }
-            // membuat summary
-            $address = $this->userAddressService->all();
-
-            // return $request->items;
-
-            $user = auth()->user();
-
-            $response = $this->responseData->create(
-                'Berhasil Membuatkan Data Check-Out',
-                data: [
-                    'transaction' => [
-                        'sub_total' => $this->transactionHelper->countTotalPrice($menus),
-                        'total_item' => $menus->count(),
-                        'shipping_cost' => 0,
-                        'category' => $category,
-                    ],
-                    'delivery_info' => [
-                        'delivery_at' => $delivery_at,
-                        'user_address' => UserAddressResource::collection($address),
-                    ],
-                    'summary_orders' => [
-                        'items' => SummaryMenuResource::collection($menus),
-                    ],
-                ],
-                isJson: false
+            $response = $this->transactionHelper->checkout(
+                $request,
+                is_pre_checkout: true
             );
 
-            return view('order.checkout', compact('response'));
+            if ($response['status'] !== 'success') {
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            session()->put(
+                'session_pre_check_out_summary_data',
+                $response
+            );
+
+            return redirect()->route('user.checkout-page');
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -252,9 +188,68 @@ class TransactionController extends Controller
                 status: 'error',
                 status_code: 500,
             );
-
-            return view('order.checkout', compact('response'));
+            return redirect()->back()->withInput()->with(compact('response'));
+        } finally {
+            if ($response['status'] !== 'success') {
+                session()->forget('session_pre_check_out_summary_data');
+            }
         }
+    }
+
+    public function createTransaction(Request $request)
+    {
+        try {
+
+            return json_decode($request->checkout_payload, true);
+
+            $response = $this->transactionHelper->checkout(
+                $request,
+            );
+
+            if ($response['status'] !== 'success') {
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            // create transaction disini?
+            $created_transaction_info = $this->transactionService->create($response);
+
+            if (!$created_transaction_info['is_success']) {
+                throw new ErrorException($created_transaction_info['message']);
+            }
+
+            $response = $this->responseData->create(
+                'Berhasil membuat transaksi pemesanan',
+                $created_transaction_info['transaction'],
+                status_code: 201,
+                isJson: false
+            );
+
+            // hapus data checkout_disini..
+            session()->forget('session_pre_check_out_summary_data');
+            session()->put('session_after_transaction_result', $response);
+            Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
+            // redirect ke transaction berhasil di buat apa ke order transaction?
+            return redirect()->route('user.after-transaction');
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
+    }
+
+    public function afterTransactionHandler()
+    {
+        $response = session()->get('session_after_transaction_result');
+
+        if (!$response) {
+            return redirect()->route('user.orders');
+        }
+
+        return view('order.after-transaction', compact('response'));
+
     }
 
     public function uploudPaymentProofHandler(Request $request, string $id)
@@ -295,6 +290,19 @@ class TransactionController extends Controller
 
                 return redirect()->back()->withInput()->with(compact('response'));
             }
+
+            // status transaksi ketika uploud 
+            // $currentStatus = StatusTransaction::tryFrom($transaction->status);
+            // if ($currentStatus === StatusTransaction::WAITING_FOR_INVOICE || !$currentStatus === StatusTransaction::PENDING) {
+            //     $response = $this->responseData->create(
+            //         'Saat ini kamu ',
+            //         status: 'warning',
+            //         status_code: 404,
+            //         isJson: false
+            //     );
+
+            //     return redirect()->back()->withInput()->with(compact('response'));
+            // }
 
             // uploud ulang / buat ulang payment transaction!;
             $uploud_info = $this->transactionService->uploudPaymentProof($transaction, $request->file('uplouded_file'));
@@ -375,14 +383,14 @@ class TransactionController extends Controller
                     $rejected_info['message'],
                     status: 'error',
                     status_code: 400,
-                    isJson:false,
+                    isJson: false,
                 );
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $response = $this->responseData->create(
                 'Berhasil Dalam Membtalakn Transaksi',
-                isJson:false,
+                isJson: false,
             );
 
             return redirect()->back()->withInput()->with(compact('response'));
