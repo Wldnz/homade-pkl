@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->decimal("shipping_cost", 10, 2);
             $table->decimal("total_price", 11, 2);
             $table->decimal("subtotal", 11, 2);
+            $table->integer("total_order");
             $table->enum('category', TransactionCategory::cases())->default(TransactionCategory::ORDER);
             $table->enum("status", StatusTransaction::cases())->default(StatusTransaction::WAITING_FOR_INVOICE);
             $table->enum("status_delivery", StatusDelivery::cases())->default(StatusDelivery::WAIT_FOR_CONFIRMATION);
@@ -60,7 +61,7 @@ return new class extends Migration {
         Schema::create('transaction_payment_proofs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('id_transaction');
-            $table->string('public_id', 255);
+            $table->string('public_id', 255)->nullable();
             $table->string('url', 265);
             $table->text('reason')->nullable();
             $table->enum('status', TransactionPaymentProofStatus::cases())->default(TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION);

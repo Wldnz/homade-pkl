@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid("id")->primary();
             $table->string("name", 120);
             $table->string("image_url", 265);
-            $table->string('image_public_id', 265);
+            $table->string('image_public_id', 265)->nullable();
             $table->timestamps();
         });
     }

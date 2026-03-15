@@ -85,7 +85,7 @@ class MenuSeeder extends Seeder
                 "vegetable" => $menu['vegetable'],
                 "side_dish" => $menu['side_dish'],
                 "chili_sauce" => $menu['chili_sauce'],
-                "image_url" => "https://homade.id/wp-content/uploads/2020/05/menu-ayam-panggang-klaten.jpg",
+                "image_url" => "https://res.cloudinary.com/ddiulakke/image/upload/v1773558790/menu-ayam-panggang-klaten_mboia7.jpg",
                 "created_at" => now(),
                 "updated_at" => now()
             ]);
