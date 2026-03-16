@@ -5,7 +5,6 @@ namespace App;
 enum StatusTransaction : string
 {
     case WAITING_FOR_INVOICE = "waiting_for_invoice";
-
     case PENDING = "pending";
     case PAID = "paid";
     case SUCCESS  = "success";

@@ -12,6 +12,7 @@ use App\StatusTransaction;
 use App\TransactionPaymentProofStatus;
 use App\Utils\CloudinaryClient;
 use Cloudinary\Cloudinary;
+use ErrorException;
 use Exception;
 use File;
 use Illuminate\Http\UploadedFile;
@@ -121,16 +122,17 @@ class TransactionService
 
     public function create(
         array $data,
-    )
-    {
+        bool $is_created_by_customer = true,
+    ) {
         $data = $data['data'];
         try {
-            return DB::transaction(function () use ($data) {
+            return DB::transaction(function () use ($data, $is_created_by_customer) {
                 $createdTransaciton = Transaction::create([
                     'id_user' => $data['user_info']['id'],
                     'shipping_cost' => $data['transaction']['shipping_cost'],
                     'subtotal' => $data['transaction']['sub_total'],
                     'total_price' => $data['transaction']['sub_total'] + $data['transaction']['shipping_cost'],
+                    'total_items' => $data['transaction']['total_item'],
                     'category' => $data['transaction']['category'],
                     'note' => $data['transaction']['note'],
                     'delivery_at' => $data['delivery_info']['delivery_at'],
@@ -153,9 +155,9 @@ class TransactionService
                     }
                 }
                 $address = $data['delivery_info']['user_address'];
-                TransactionAddress::create([
+                $address_raw_data = [
                     'id_transaction' => $createdTransaciton->id,
-                    'received_name' => $address['received_name'],
+                    'received_name' => $address['received_name'] ?? $address['fullname'],
                     'phone' => $address['phone'],
                     'label' => $address['label'],
                     'address' => $address['address'],
@@ -164,7 +166,21 @@ class TransactionService
                     'latitude' => $address['latitude'],
                     'created_at' => now(),
                     'updated_at' => now()
-                ]);
+                ];
+                TransactionAddress::create($address_raw_data);
+
+                // update alamat & nomor telepon pengguna
+                if (isset($address['save_to_profile']) && $address['save_to_profile']) {
+                    $address_raw_data['id_user'] = $data['user_info']['id'];
+                    $address_raw_data['is_main_address'] = $address['is_main_address'] ?? false;
+                    (new UserAddressService())->saveAndChangeTheMainAdress($address_raw_data);
+                }
+
+                // bahaya nich.....
+                if(isset($data['is_changed']) && $data['is_changed']){
+                    $data['user_info']->save();
+                }
+
                 return [
                     'is_success' => true,
                     'message' => 'Berhasil dalam membuat transaksi!',
@@ -194,58 +210,84 @@ class TransactionService
             ];
         }
 
-        // validasi ini udh nge carry wkwk
-        if (!$this->isAcceptableStatusForChangingShippingCost($transaction->status) || $transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
-            return [
-                'is_success' => false,
-                'message' => 'Maaf, saat ini kamu tidak memenuhi syarat untuk menguploud ulang kembali bukti pembayaran'
-            ];
-        }
+        // kalo mau uploud payment proff harus pending kocak wkwkkwkw salah gw 
 
-        $cloudinary = new CloudinaryClient();
-        // uploud gambar disini!
-        $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
-        if (!$uplouded) {
-            return [
-                'is_success' => false,
-                'message' => 'Tidak berhasil dalam photo mengunggah bukti pembayaran'
-            ];
-        }
-        // ganti gambar
-        return DB::transaction(function () use ($transaction, $uplouded, $cloudinary) {
-
-            if ($transaction->payment_proof) {
-                $old_public_id = $transaction->payment_proof->public_id;
-                $transaction->payment_proof->url = $uplouded['secure_url'];
-                $transaction->payment_proof->status = TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION;
-                $transaction->payment_proof->public_id = $uplouded['public_id'];
-                $transaction->payment_proof->save();
-                // hapus gambar
-                $cloudinary->deleteThePaymentProofImage($old_public_id);
+        if (StatusTransaction::tryFrom($transaction->status) == StatusTransaction::PENDING) {
+            if ($transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
                 return [
-                    'is_success' => true,
-                    'is_created' => false,
-                    'message' => 'Berhasil dalam menguploud ulang bukti pembayaran'
+                    'is_success' => false,
+                    'message' => 'Maaf, saat ini kamu tidak memenuhi syarat untuk menguploud ulang kembali bukti pembayaran'
+                ];
+            }
+            // syarat masuk kesini adalaah
+            // status transaksi masih waiting for invoice dan pending
+            // jika status pending maka dan payment proof sudah ada maka status payment_proof harus reject
+            $cloudinary = new CloudinaryClient();
+            // uploud gambar disini!
+            $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
+            $old_public_id = null;
+            if (!$uplouded) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak berhasil dalam photo mengunggah bukti pembayaran'
                 ];
             }
 
-            TransactionPaymentProof::create([
-                'id_transaction' => $transaction->id,
-                'public_id' => $uplouded['public_id'],
-                'url' => $uplouded['url'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            try {
+                // mulai transction
+                DB::beginTransaction();
+                // logic / ubah transaksi bakal mulai disnii
+                $is_created = false;
+                if ($transaction->payment_proof) {
+                    $old_public_id = $transaction->payment_proof->public_id;
 
-            return [
-                'is_success' => true,
-                'is_created' => true,
-                'message' => 'Berhasil dalam menguploud bukti pembayaran',
-            ];
+                    $transaction->payment_proof->url = $uplouded['secure_url'];
+                    $transaction->payment_proof->status = TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION;
+                    $transaction->payment_proof->public_id = $uplouded['public_id'];
 
-        });
-        // hapus gambar jika memiliki bukti pembayaran dengan status gagal
+                    $transaction->payment_proof->save();
+                    $cloudinary->deleteThePaymentProofImage($old_public_id);
+                } else {
+                    // kalo blm ada transaction payment proof
+                    TransactionPaymentProof::create([
+                        'id_transaction' => $transaction->id,
+                        'public_id' => $uplouded['public_id'],
+                        'url' => $uplouded['url'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $is_created = true;
+                }
 
+                $transaction->status = StatusTransaction::PENDING;
+                $transaction->save();
+
+                DB::commit();
+
+                return [
+                    'is_success' => true,
+                    'is_created' => $is_created,
+                    'message' => 'Berhasil dalam menguploud bukti pembayaran',
+                ];
+
+            } catch (Exception $e) {
+                DB::rollBack();
+                Log::error('Error when try to create payment proof : ' . $e->getMessage());
+                if ($uplouded) {
+                    $deleted = $cloudinary->delete($uplouded['public_id']);
+                }
+                return [
+                    'is_success' => false,
+                    'message' => 'Telah Terjadi Kesalahan Pada Server',
+                ];
+            }
+
+        }
+
+        return [
+            'is_success' => false,
+            'message' => 'tidak memenuhi untuk menguploud bukti pembayaran'
+        ];
 
     }
     public function changeShippingCost(

@@ -20,6 +20,7 @@ class Transaction extends Model
         'shipping_cost',
         'sub_total',
         'total_price',
+        'total_items',
         'category',
         'status',
         'status_delivery',

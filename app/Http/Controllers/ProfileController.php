@@ -7,9 +7,7 @@ use App\ResponseData;
 use App\Service\AchievementService;
 use App\Service\PartnerService;
 use Exception;
-use Illuminate\Http\Request;
 use Log;
-use Response;
 
 class ProfileController extends Controller
 {

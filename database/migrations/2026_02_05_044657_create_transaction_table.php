@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->decimal("shipping_cost", 10, 2);
             $table->decimal("total_price", 11, 2);
             $table->decimal("subtotal", 11, 2);
-            $table->integer("total_order");
+            $table->integer("total_items");
             $table->enum('category', TransactionCategory::cases())->default(TransactionCategory::ORDER);
             $table->enum("status", StatusTransaction::cases())->default(StatusTransaction::WAITING_FOR_INVOICE);
             $table->enum("status_delivery", StatusDelivery::cases())->default(StatusDelivery::WAIT_FOR_CONFIRMATION);

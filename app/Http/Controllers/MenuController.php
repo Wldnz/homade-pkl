@@ -196,25 +196,21 @@ class MenuController extends Controller
                     'Tidak dapat menemukan menu mingguan pada tanggal ini',
                     status: 'warning',
                     status_code: 404,
-                    isJson: true
+                    isJson: false
                 );
                 return view('order.select-menu-weekly', compact('response'));
             }
 
             // syarat & kondisi dari perusahaan cuy..
-            if ($date_at->isTomorrow() && $date_at->greaterThan(now()->addDays(1)->setTime(15,0,0))) {
+            $current_date = now();
+            $current_date_at_15_pm = $current_date->clone()->setTime(15,0,0);
+            if ($current_date->greaterThanOrEqualTo($date_at) || $date_at->isTomorrow() && $current_date->greaterThan($current_date_at_15_pm)) {
                 // returnnya apa namanya 404 atau 200 nih? tinggal liat categorynya aja si
                $response = $this->responseData->create(
-                    'Anda sudah tidak bisa menu mingguan pada tanggal ini, dan jika ingin memesan minimal 50 box',
-                    // [
-                    //     'date' => $date_at,
-                    //     'category' => TransactionCategory::PRE_ORDER,
-                    //     'menus' => $menus,
-                    //     // 'items' => SelectMenuResource::collection($menus)
-                    // ],
+                    'Anda sudah tidak bisa menu mingguan pada tanggal ini, dan jika ingin memesan minimal 50 box (senin-jum`at) atau 100 box (sabtu-minggu)',
                     status: 'warning',
                     status_code: 400,
-                    isJson: true
+                    isJson: false
                 );
                 return view('order.select-menu-weekly', compact('response'));
             }

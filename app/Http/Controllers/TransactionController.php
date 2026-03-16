@@ -4,26 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\PaginationResource;
-use App\Http\Resources\SummaryMenuResource;
 use App\Http\Resources\TransactionResource;
-use App\Http\Resources\UserAddressResource;
 use App\Mail\SuccessCreateTransactionEmail;
 use App\ResponseData;
 use App\Service\MenuService;
+use App\Service\PaymentMethodService;
 use App\Service\TransactionService;
 use App\Service\UserAddressService;
 use App\StatusTransaction;
-use App\TransactionCategory;
+use App\TransactionPaymentProofStatus;
 use App\Utils\TransactionHelper;
 use Carbon\Carbon;
 use ErrorException;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Log;
 use Mail;
 use Validator;
-use function PHPUnit\Framework\isJson;
 
 class TransactionController extends Controller
 {
@@ -34,6 +31,7 @@ class TransactionController extends Controller
     private MenuService $menuService;
 
     private UserAddressService $userAddressService;
+    private PaymentMethodService $paymentMethodeService;
 
     private ResponseData $responseData;
 
@@ -43,6 +41,7 @@ class TransactionController extends Controller
         $this->transactionHelper = new TransactionHelper;
         $this->menuService = new MenuService;
         $this->userAddressService = new UserAddressService;
+        $this->paymentMethodeService = new PaymentMethodService();
         $this->responseData = new ResponseData;
     }
 
@@ -121,9 +120,18 @@ class TransactionController extends Controller
                 return view('profile.order.detail', compact('response'));
             }
 
+            $payment_methods = [];
+
+            if(StatusTransaction::tryFrom($transaction->status) === StatusTransaction::PENDING && !$transaction->payment_proof || $transaction->payment_proof && TransactionPaymentProofStatus::tryFrom($transaction->payment_proof->status) === TransactionPaymentProofStatus::REJECTED){
+                $payment_methods = $this->paymentMethodeService->all();
+            } 
+
             $response = $this->responseData->create(
                 'Berhasil menemukan transaksi!',
-                (new DetailTransactionResource($transaction))->toArray($request),
+                [
+                    'transaction' => (new DetailTransactionResource($transaction))->toArray($request),
+                    'payment_methods' => $payment_methods,
+                ],
                 isJson: false
             );
 
@@ -131,7 +139,7 @@ class TransactionController extends Controller
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            $response = $this->responseData->create(
+            return $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Server',
                 status: 'error',
                 status_code: 500,
@@ -162,9 +170,6 @@ class TransactionController extends Controller
     {
         try {
             // saya buatkan function / handler pre checkout untuk memudahkan jika ada perubahan dalam satu function yaw!
-            $payload_data = json_decode($request->checkout_payload, true);
-            $request->merge($payload_data);
-
             $response = $this->transactionHelper->checkout(
                 $request,
                 is_pre_checkout: true
@@ -187,6 +192,7 @@ class TransactionController extends Controller
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
                 status_code: 500,
+                isJson:false
             );
             return redirect()->back()->withInput()->with(compact('response'));
         } finally {
@@ -199,8 +205,6 @@ class TransactionController extends Controller
     public function createTransaction(Request $request)
     {
         try {
-
-            return json_decode($request->checkout_payload, true);
 
             $response = $this->transactionHelper->checkout(
                 $request,
@@ -237,6 +241,7 @@ class TransactionController extends Controller
                 status: 'error',
                 status_code: 500,
             );
+            return redirect()->back()->withInput()->with(compact('response'));
         }
     }
 
@@ -266,6 +271,7 @@ class TransactionController extends Controller
                 'uplouded_file' => 'Buki Pembayaran',
             ]);
 
+            
             if ($validator->fails()) {
                 $response = $this->responseData->create(
                     'Data yang diberikan belum valid!',
@@ -273,14 +279,14 @@ class TransactionController extends Controller
                     status: 'warning',
                     status_code: 422,
                     isJson: false
-                );
-
-                return redirect()->back()->withInput()->with(compact('response'));
-            }
-
-            $transaction = $this->transactionService->detail($id);
-
-            if (!$transaction) {
+                    );
+                    
+                    return redirect()->back()->withInput()->with(compact('response'));
+                    }
+                    
+                    $transaction = $this->transactionService->detail($id);
+                    
+                    if (!$transaction) {
                 $response = $this->responseData->create(
                     'Tidak Dapat Menemukan Transaksi',
                     status: 'warning',
@@ -290,19 +296,6 @@ class TransactionController extends Controller
 
                 return redirect()->back()->withInput()->with(compact('response'));
             }
-
-            // status transaksi ketika uploud 
-            // $currentStatus = StatusTransaction::tryFrom($transaction->status);
-            // if ($currentStatus === StatusTransaction::WAITING_FOR_INVOICE || !$currentStatus === StatusTransaction::PENDING) {
-            //     $response = $this->responseData->create(
-            //         'Saat ini kamu ',
-            //         status: 'warning',
-            //         status_code: 404,
-            //         isJson: false
-            //     );
-
-            //     return redirect()->back()->withInput()->with(compact('response'));
-            // }
 
             // uploud ulang / buat ulang payment transaction!;
             $uploud_info = $this->transactionService->uploudPaymentProof($transaction, $request->file('uplouded_file'));
