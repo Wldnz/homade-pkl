@@ -7,7 +7,10 @@ use App\Http\Resources\ContactResource;
 use App\ResponseData;
 use App\Service\ContactService;
 use Exception;
+use Illuminate\Http\Request;
 use Log;
+use Mail;
+use Validator;
 
 class ContactController extends Controller
 {
@@ -166,5 +169,70 @@ class ContactController extends Controller
     }
 
 
+    public function sendEmailToSupport(Request $request)
+    {
+        try {
 
+            $validator = Validator::make($request->all(), [
+                'fullname' => 'required|string|min:3',
+                'email' => 'required|email',
+                'subject' => 'required|string|min:3',
+                'message' => 'required|string|min:10',
+            ], [
+                'required' => "Pastikan :attribute sudah dikirimkan",
+                'string' => ':attribute harus berupa sebuah text',
+                'email' => ':attribute harus berupa email yang valid',
+                'min' => ':attribute harus memiliki minimal :min'
+            ], [
+                'fullname' => 'Nama Lengkap',
+                'email' => 'Alamat Email',
+                'subject' => 'Subjek',
+                'message' => 'Pesan'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->responseData->create(
+                    'Data yang diberikan belum valid',
+                    errors: $validator->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                    isJson: false,
+                );
+            }
+
+            $contactService = new ContactService();
+            $contact = $contactService->contact();
+
+            if (!$contact || empty($contact->email)) {
+                return $this->responseData->create(
+                    'Maaf, Perusahaan belum menaruh alamat email untuk kontak support',
+                    status: 'error',
+                    status_code: 404,
+                    isJson: false,
+                );
+            }
+
+            $mailData = [
+                'fullname' => $request->fullname,
+                'email' => $request->email,
+                'subject' => $request->subject,
+                'message' => $request->message,
+            ];
+
+            Mail::to($contact->email)->send(new \App\Mail\ContactSupport($mailData));
+
+            return $this->responseData->create(
+                'Pesan berhasil dikirim! Tim Support akan segera menghubungi Anda.',
+                isJson: false,
+            );
+
+        } catch (Exception $e) {
+            return $this->responseData->create(
+                'Terjadi kesalahan saat mengirim email: ' . $e->getMessage(),
+                status: 'error',
+                status_code: 500,
+                isJson: false,
+            );
+        }
+    }
 }

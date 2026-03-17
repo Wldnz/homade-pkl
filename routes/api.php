@@ -55,6 +55,8 @@ Route::name('api')->group(function () {
         Route::get('/operational', [ContactController::class, 'operational'])->name('operational');
     });
 
+    // send to support (contact support homade)
+    Route::post('/contact-support', [ContactController::class, 'sendEmailToSupport'])->name('contact-support');
 
     Route::middleware(ApiMiddleware::class)->group(function () {
         Route::prefix('me')->group(function () {

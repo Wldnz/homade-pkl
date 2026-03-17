@@ -127,11 +127,23 @@
         </div>
 
         <span class="h-100px flex-shrink-0"></span>
-        
         @include('components.navbarFoot',[ "page" => "contact"])
         <script src="assets/plugins/global/plugins.bundle.js"></script>
         <script src="assets/js/scripts.bundle.js"></script>
     </body>
+
+    <form action="{{ route('user.contact-support') }}" method="post">
+            @csrf
+            <input type="text" name="fullname" value="wildan">
+            <br>
+            <input type="text" name="email" value="wildanofficial32@gmail.com">
+            <br>
+            <input type="text" name="subject" value="butuh bantuan cuk">
+            <br>
+            <textarea name="message" id=""> cik, saya laper cik, bisakah saya minta makananannya?
+            </textarea>
+            <button>hubungi support dek</button>
+        </form>
 
 
 </html>

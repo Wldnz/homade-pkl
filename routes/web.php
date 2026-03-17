@@ -24,6 +24,7 @@ Route::name('user.')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::get('/contact', [ContactController::class, 'contact'])->name('contact');
+    Route::post('/contact-support', [ContactController::class, 'sendEmailToSupport'])->name('contact-support');
     // buat autentikasi disini banh
 
     Route::get('/signup', [AuthController::class, 'signup'])->name('signup');
