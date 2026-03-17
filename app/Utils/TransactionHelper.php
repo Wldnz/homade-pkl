@@ -76,8 +76,8 @@ class TransactionHelper
             $response = $this->convertPayloadDataIntoArray($request, $is_json);
             if ($response['status'] !== 'success') {
                 return redirect()->back()->withInput()->with(compact('response'));
-            }
-            // Pastikan merge hasil array-nya ke request
+                }
+                // Pastikan merge hasil array-nya ke request
             $request->merge($response['data']);
         }
 
@@ -113,7 +113,7 @@ class TransactionHelper
 
                 // Field di dalam alamat baru wajib diisi JIKA user_address_id kosong
                 $rules['delivery_info.new_user_address.fullname'] = 'required_without:delivery_info.user_address_id|string';
-                $rules['delivery_info.new_user_address.phone'] = 'required_without:delivery_info.user_address_id|string|min:8';
+                $rules['delivery_info.new_user_address.phone'] = 'required_without:delivery_info.user_address_id|string|min:8|max:15';
                 $rules['delivery_info.new_user_address.label'] = 'required_without:delivery_info.user_address_id|string|min:3';
                 $rules['delivery_info.new_user_address.address'] = 'required_without:delivery_info.user_address_id|string|min:8';
 
@@ -138,6 +138,7 @@ class TransactionHelper
             'after' => ':attribute minimal adalah besok hari',
             'between' => 'Koordinat :attribute tidak valid',
             'min' => ':attribute minimal :min karakter/angka',
+            'max' => ':attribute maksimal :max karakter/angka',
         ], [
             'items' => 'List Menu Yang Dipesan',
             'items.*.id' => 'ID Menu',
@@ -186,9 +187,9 @@ class TransactionHelper
         // mengidentifikasi kategori
         $category = $this->getCategoryTransaction($menus);
         // melakukan pengecekan terlebuh dahulu apakah sekarang sudah di jam 3 sore atau blm
-        if ($category == TransactionCategory::ORDER && !$this->canOrderAtThisTime($delivery_at)) {
+        if ($category == TransactionCategory::ORDER && !$this->canOrderDeliveryWeeklyMenu($delivery_at)) {
             return $this->responseData->create(
-                'Maaf, kami sudah menutup pemesanan untuk orderan menu mingguan pada besok hari',
+                'Menu mingguan hanya dapat di pesan pada h-1 dan paling lambar di jam 3 sore',
                 status: 'warning',
                 status_code: 400,
                 isJson: $is_json
@@ -352,6 +353,20 @@ class TransactionHelper
             return false;
         }
         return true;
+    }
+
+    public function canOrderDeliveryWeeklyMenu(Carbon $delivery_at){
+        $current_date = now();
+
+        // ketika delivery_at nya di bawah tanggal skrng maka tidak bisa!
+        // ketika delivery_at nya besok dan hari ini sudah di jam 3 sore lebih maka tidak bisa order!
+        // dan ketika delivery_at nya hari ini maka tidak bisa pesan menu har ini
+        if($current_date->greaterThan($delivery_at) || $delivery_at->isToday() || $delivery_at->isTomorrow() && $current_date->greaterThan(now()->setTime(15,0,0))){
+            return false;
+        }
+
+        return true;
+
     }
 
     public function countTotalPrice(Collection $menus)

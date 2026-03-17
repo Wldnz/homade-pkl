@@ -23,7 +23,7 @@ class UserAddressController extends Controller
         $this->userAddressService = new UserAddressService;
     }
 
-    public function address()
+    public function address(Request $request)
     {
         try {
             $address = $this->userAddressService->all();
@@ -40,7 +40,7 @@ class UserAddressController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil menemukan alamat pengguna',
-                UserAddressResource::collection($address),
+                UserAddressResource::collection($address)->toArray($request),
                 isJson: false
             );
 
@@ -59,13 +59,13 @@ class UserAddressController extends Controller
         }
     }
 
-    public function detail(string $id)
+    public function detail(Request $request, string $id)
     {
         try {
 
             $address = $this->userAddressService->byID($id);
 
-            if (! $address) {
+            if (!$address) {
                 $response = $this->responseData->create(
                     'Tidak Dapat Menemukan Alamat!',
                     status: 'warning',
@@ -78,7 +78,7 @@ class UserAddressController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil Menemukan Detail Alamat Email',
-                new DetailUserAddressResource($address),
+                (new DetailUserAddressResource($address))->toArray($request),
                 isJson: false
             );
 
@@ -86,7 +86,7 @@ class UserAddressController extends Controller
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            $response = $this->responseData->create(
+            return $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
                 status_code: 500,
@@ -128,7 +128,7 @@ class UserAddressController extends Controller
             ]);
 
             if ($validate->fails()) {
-                $response = $this->responseData->create(
+                return $response = $this->responseData->create(
                     'Data Belum Valid',
                     errors: $validate->errors()->toArray(),
                     status: 'warning',
@@ -175,7 +175,7 @@ class UserAddressController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil Membuat Alamat Email',
-                new UserAddressResource($address),
+                (new UserAddressResource($address))->toArray($request),
                 isJson: false,
             );
 
@@ -204,6 +204,7 @@ class UserAddressController extends Controller
                 'address' => 'string|required|min:8',
                 'longitude' => 'numeric|required|decimal:-180,180|min:-180|max:180',
                 'latitude' => 'numeric|required|decimal:-90,90|min:-90|max:90',
+                'is_main_address' => ''
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'min' => ':attribute minimal harus memiliki minimal :min karakter',
@@ -230,7 +231,7 @@ class UserAddressController extends Controller
 
             $address = $this->userAddressService->byID($id);
 
-            if (! $address) {
+            if (!$address) {
                 $response = $this->responseData->create(
                     'Tidak Dapat Menemukan Alamat!',
                     status: 'warning',
@@ -260,7 +261,7 @@ class UserAddressController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil mengubah data',
-                new DetailUserAddressResource($address),
+                (new DetailUserAddressResource($address))->toArray($request),
                 isJson: false,
             );
 
@@ -283,7 +284,7 @@ class UserAddressController extends Controller
     {
         try {
             $address = $this->userAddressService->byID($id);
-            if (! $address) {
+            if (!$address) {
                 $response = $this->responseData->create(
                     'Tidak Dapat Menemukan Alamat!',
                     status: 'warning',

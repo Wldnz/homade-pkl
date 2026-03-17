@@ -7,7 +7,6 @@ use App\Mail\SuccessfullyRegistered;
 use App\Models\User;
 use App\ResponseData;
 use App\Service\UserService;
-use Auth;
 use Exception;
 use Hash;
 use Illuminate\Auth\Events\PasswordReset;
@@ -17,19 +16,17 @@ use Log;
 use Mail;
 use Str;
 use Validator;
-use function PHPUnit\Framework\isJson;
 
 class AuthController extends Controller
 {
-
     private ResponseData $responseData;
 
     private UserService $userService;
 
     public function __construct()
     {
-        $this->responseData = new ResponseData();
-        $this->userService = new UserService();
+        $this->responseData = new ResponseData;
+        $this->userService = new UserService;
     }
 
     public function signin()
@@ -47,14 +44,14 @@ class AuthController extends Controller
         try {
             $credential = Validator::make($request->all(), [
                 'email' => 'required|email|min:8',
-                'password' => 'required|min:8'
+                'password' => 'required|min:8',
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'email' => ':attribute harus berupa email yang valid!',
-                'min' => ':attribute minimal harus memiliki :min karater'
+                'min' => ':attribute minimal harus memiliki :min karater',
             ], [
                 'email' => 'Alamat Email',
-                'password' => 'Kata Sandi'
+                'password' => 'Kata Sandi',
             ]);
 
             if ($credential->fails()) {
@@ -63,8 +60,9 @@ class AuthController extends Controller
                     errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
-                    isJson:false
+                    isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -76,6 +74,7 @@ class AuthController extends Controller
                     status_code: 422,
                     isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -88,6 +87,7 @@ class AuthController extends Controller
                     status_code: 404,
                     isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -98,12 +98,14 @@ class AuthController extends Controller
                     status_code: 404,
                     isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $this->userService->login($user);
             session()->regenerate();
-            //sementatara return ke dashboard dlu ya...
+
+            // sementatara return ke dashboard dlu ya...
             return redirect()->to($request->query('redirect_url', '/'));
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -113,6 +115,7 @@ class AuthController extends Controller
                 status_code: 500,
                 isJson: false
             );
+
             return redirect()->back()->withInput()->with(compact('response'));
         }
     }
@@ -128,7 +131,7 @@ class AuthController extends Controller
                     'required',
                     \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols(),
                 ],
-                'password_confirmation' => 'required|same:password'
+                'password_confirmation' => 'required|same:password',
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'email' => ':attribute harus berupa email yang valid!',
@@ -136,22 +139,23 @@ class AuthController extends Controller
                 'same' => ':attribute harus sama dengan :other',
                 'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
                 'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
-                'password.numbers' => ':attribute harus memiliki setidaknya satu angka'
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka',
             ], [
                 'first_name' => 'Nama Depan',
                 'email' => 'Alamat Email',
                 'password' => 'Kata Sandi',
-                'password_confirmation' => 'Konfirmasi Kata Sandi'
+                'password_confirmation' => 'Konfirmasi Kata Sandi',
             ]);
 
             if ($credential->fails()) {
-                $response =  $this->responseData->create(
+                $response = $this->responseData->create(
                     'Data yang dimasukkan belum valid!',
                     errors: $credential->errors()->toArray(),
                     status: 'warning',
                     status_code: 422,
-                    isJson:false
+                    isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -165,6 +169,7 @@ class AuthController extends Controller
                     status_code: 403,
                     isJson: false
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -203,6 +208,176 @@ class AuthController extends Controller
                 status_code: 500,
                 isJson: false
             );
+
+            return redirect()->back()->withInput()->with(compact('response'));
+        }
+    }
+
+    public function forgot()
+    {
+        return view('forgot-password');
+    }
+
+    public function forgotHandler(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                ['email' => 'email|required|min:3'],
+                [
+                    'required' => ':attribute dibutuhkan!',
+                    'email' => ':attribute membutuhkan email yang valid',
+                    'min' => ':attribute membutuhkan minimal :min karakter',
+                ],
+                [
+                    'email' => 'Alamat Email',
+                ]
+            );
+
+            if ($validator->fails()) {
+                $response = $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    errors: $validator->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                    isJson: false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            $user = $this->userService->getByEmail($request->email);
+
+            if (!$user) {
+                $response = $this->responseData->create(
+                    'Tidak Dapat Menemukan Alamat Email',
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            $isSent = Password::sendResetLink(
+                $request->only('email')
+            );
+
+            if (!$isSent == Password::ResetLinkSent) {
+                $response = $this->responseData->create(
+                    'Tidak Dapat Mengirimkan Notifikasi Ke Email',
+                    status: 'warning',
+                    status_code: 400, // ini apa yang enak ya status codenya ??
+                    isJson: false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            $response = $this->responseData->create(
+                'Berhasil Mengirimakn Reset Kata Sandi Pada Email',
+                isJson: false
+            );
+
+            return redirect()->back()->withInput()->with(compact('response'));
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+                isJson: false
+            );
+
+            return redirect()->back()->withInput()->with(compact('response'));
+        }
+    }
+
+    public function changePassword(Request $request){
+        return view('profile.change-password');
+    }
+
+    public function changePasswordHandler(Request $request)
+    {
+        try {
+
+            $credential = Validator::make($request->all(), [
+                'old_password' => 'required|string|min:8',
+                'password' => [
+                    'required',
+                    \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols(),
+                ],
+                'password_confirmation' => 'required|same:password',
+            ], [
+                'required' => ':attribute dibutuhkan!',
+                'min' => ':attribute minimal harus memiliki :min karater',
+                'same' => ':attribute harus sama dengan :other',
+                'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
+                'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka',
+            ], [
+                'old_password' => 'Kata Sandi Lama',
+                'password' => 'Kata Sandi Baru',
+                'password_confirmation' => 'Konfirmasi Kata Sandi Baru',
+            ]);
+
+            if ($credential->fails()) {
+                $response = $this->responseData->create(
+                    'Data yang dimasukkan belum valid!',
+                    errors: $credential->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                    isJson:false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            $user = auth()->user();
+
+            if (!Hash::check($request->old_password, $user->password)) {
+                $response = $this->responseData->create(
+                    'Pastikan memasukkan kata sandi yang benar!',
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            if ($request->old_password == $request->password) {
+                $response = $this->responseData->create(
+                    'Pastikan kata sandi yang dimasukkan tidak sama dengan kata sandi yang lama!',
+                    status: 'warning',
+                    status_code: 400,
+                    isJson: false
+                );
+
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+
+            $this->userService->changePassword($user, Hash::make($request->password));
+
+            Mail::to($user->email)->send(new SuccessfullyChangedPassword($user));
+
+            $response = $this->responseData->create(
+                'Berhasil Mengganti Kata Sandi Lama Dengan Kata Sandi Baru',
+                isJson: false
+            );
+
+            return redirect()->back()->withInput()->with(compact('response'));
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+                isJson: false
+            );
+
             return redirect()->back()->withInput()->with(compact('response'));
         }
     }
@@ -211,28 +386,54 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'token' => 'required|string',
-            'email' => 'required|email|string'
+            'email' => 'required|email|string',
         ]);
 
         if ($validator->fails()) {
-            // sementara gini dlu
-            return 'Pastikan Semua Data Yang Diperlukan Dibawa!';
+            $response = $this->responseData->create(
+                'Data yang dimasukkan belum valid!',
+                errors: $validator->errors()->toArray(),
+                status: 'warning',
+                status_code: 422,
+                isJson: false,
+            );
+
+            return view('reset-password', compact('response'));
         }
 
         $user = $this->userService->getByEmail($request->email);
 
         if (!$user) {
-            return 'Tidak dapat menemukan pengguna bang';
+            $response = $this->responseData->create(
+                'Tidak Dapat Menemukan Pengguna',
+                status: 'warning',
+                status_code: 404,
+                isJson: false,
+            );
+
+            return view('reset-password', compact('response'));
         }
 
         if (!Password::tokenExists($user, $request->token)) {
-            return 'tokennya tidak valid atau sudah expired bang';
+            $response = $this->responseData->create(
+                'Tidak Dapat Menemukan Token Atau Token Sudah Kadaluarsa',
+                status: 'warning',
+                status_code: 400,
+                isJson: false,
+            );
+
+            return view('reset-password', compact('response'));
         }
 
-        return view('reset-password', [
-            'user' => $user,
-            'token' => $request->token
-        ]);
+        $response = $this->responseData->create(
+            'Berhasil Dalam Memverifikasi Data Pengguna Untuk Reset Kata Sandi',
+            [
+                'user' => $user,
+                'token' => $request->token,
+            ],
+            isJson: false,
+        );
+        return view('reset-password', compact('response'));
     }
 
     public function resetHandler(Request $request, string $token)
@@ -241,7 +442,7 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
                 'password' => ['required', \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()],
-                'password_confirmation' => 'required|same:password'
+                'password_confirmation' => 'required|same:password',
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'email' => ':attribute harus memiliki email yang valid!',
@@ -249,11 +450,11 @@ class AuthController extends Controller
                 'same' => ':attribute harus sama dengan :other',
                 'password.mixed' => ':attribute harus memiliki setidaknya satu huruf besar dan satu huruf kecil',
                 'password.symbols' => ':attribute harus memiliki setidaknya satu simbol',
-                'password.numbers' => ':attribute harus memiliki setidaknya satu angka'
+                'password.numbers' => ':attribute harus memiliki setidaknya satu angka',
             ], [
                 'email' => 'Alamat Email',
                 'password' => 'Kata Sandi Baru',
-                'password_confirmation' => 'Konfirmasi Kata Sandi Baru'
+                'password_confirmation' => 'Konfirmasi Kata Sandi Baru',
             ]);
 
             if ($validator->fails()) {
@@ -264,6 +465,7 @@ class AuthController extends Controller
                     status_code: 422,
                     isJson: false,
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -276,6 +478,7 @@ class AuthController extends Controller
                     status_code: 404,
                     isJson: false,
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -287,13 +490,14 @@ class AuthController extends Controller
                     status_code: 400,
                     isJson: false,
                 );
+
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
             $status = Password::reset(
-                [ ...$request->only('email', 'password', 'password_confirmation'), ...[ 'token' => $token ] ],
+                [...$request->only('email', 'password', 'password_confirmation'), ...['token' => $token]],
                 function (User $user, string $password) {
-                    
+
                     $user->password = Hash::make($password);
                     $user->setRememberToken(str::random(60));
                     $user->save();
@@ -309,6 +513,7 @@ class AuthController extends Controller
                     status_code: 400, // bingung mau naruh apa
                     isJson: false,
                 );
+
                 return redirect()->back()->with(compact('response'));
             }
 
@@ -330,6 +535,7 @@ class AuthController extends Controller
                 status_code: 500,
                 isJson: false,
             );
+
             return redirect()->back()->withInput()->with(compact('response'));
         }
     }
@@ -341,6 +547,7 @@ class AuthController extends Controller
             'Berhasil keluar sesi!',
             isJson: false
         );
+
         return redirect('/')->with(compact('response'));
     }
 }

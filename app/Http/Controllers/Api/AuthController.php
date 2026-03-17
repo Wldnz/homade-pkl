@@ -218,7 +218,7 @@ class AuthController extends Controller
                 return $this->responseData->create(
                     'Tidak Dapat Mengirimkan Notifikasi Ke Email',
                     status: 'warning',
-                    status_code: 404// ini apa yang enak ya status codenya ??
+                    status_code: 400// ini apa yang enak ya status codenya ??
                 );
             }
 

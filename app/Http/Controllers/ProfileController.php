@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PaginationResource;
+use App\Http\Resources\PartnerResources;
 use App\ResponseData;
 use App\Service\AchievementService;
 use App\Service\PartnerService;
 use Exception;
+use Illuminate\Http\Request;
 use Log;
 
 class ProfileController extends Controller
@@ -21,19 +23,20 @@ class ProfileController extends Controller
         $this->partnerService = new PartnerService();
     }
     
-    public function profile(){
+    public function profile(Request $request){
         try{
             $achievements = $this->achievementService->all();
 
-            $partners = $this->partnerService->all();
+            $limit_partner = $request->query('limit_partner', 15);
+            $partners = $this->partnerService->all(limit: $limit_partner);
 
             $response =  $this->responseData->create(
                 'Succesfully getting data',
                 data : [
                     'achievements' => $achievements,
                     'partners' => [
-                        'pagination' => new PaginationResource($partners),
-                        'items' => $partners
+                        'pagination' => (new PaginationResource($partners))->toArray($request),
+                        'items' => PartnerResources::collection($partners)->toArray($request)
                     ]
                 ],
                 isJson:false

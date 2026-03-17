@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\PackageResource;
+use App\Http\Resources\PaginationResource;
 use App\ResponseData;
 use App\Service\CategoryService;
 use App\Service\MenuService;
 use App\Service\PackageService;
 use App\Service\PartnerService;
 use Exception;
+use Illuminate\Http\Request;
 use Log;
 
 
@@ -29,7 +31,7 @@ class HomeController extends Controller
         $this->partnerService = new PartnerService();
     }
 
-    public function home(){
+    public function home(Request $request){
         // packages, menu_category (selected or idk), weekly populer menu (ini jadi today menu aja lah ya!)
 
         try{
@@ -49,10 +51,13 @@ class HomeController extends Controller
                 'Berhasil mendapatkan data!',
                 [
                     // menus populer
-                    'menus' => MenuResource::collection($menus),
+                    'menus' => MenuResource::collection($menus)->toArray($request),
                     'categories' => $categories,
-                    'packages' => PackageResource::collection($packages),
-                    'partners' => $partners,
+                    'packages' => PackageResource::collection($packages)->toArray($request),
+                    'partners' => [
+                        'pagination' => (new PaginationResource($partners))->toArray($request),
+                        'items' => $partners['data'] ?? [],
+                    ],
                 ],
                 isJson:false
             );

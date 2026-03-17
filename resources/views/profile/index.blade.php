@@ -64,7 +64,9 @@
                 <span class="w-70px flex-shrink-0"></span>
 
             <!-- begin::Right Side -->
-                <div class="d-flex w-75 p-10 flex-column border-grey-1 rounded-4">
+                <form class="d-flex w-75 p-10 flex-column border-grey-1 rounded-4" action="{{ route('user.edit-me') }}" method="post">
+                    @csrf
+                    @method('put')
                     <p class="fs-1 fw-bold mb-0">Profil Saya</p>
                     <p class="fs-5">Kelola informasi profil Anda untuk mengontrol, melindungi dan mengamankan akun</p>
 
@@ -72,30 +74,30 @@
 
                         <div class="d-flex flex-column w-100">
                             <label for="first_name" class="mb-1 fs-6 text-grey">Nama Depan</label>
-                            <input type="text" id="first_name" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3">
+                            <input type="text" name="first_name" id="first_name" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3" value="{{ old('first_name', $response['data']['first_name']) }}">
                         </div>
 
                         <div class="d-flex flex-column w-100">
                             <label for="last_name" class="mb-1 fs-6 text-grey">Nama Belakang</label>
-                            <input type="text" id="last_name" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3">
+                            <input type="text" name="last_name" id="last_name" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3" value="{{ old('last_name', $response['data']['last_name']) }}">
                         </div>
 
                     </div>
 
                     <div class="d-flex flex-column mb-5 w-100">
                         <label for="phone_number" class="mb-1 fs-6 text-grey">Nomor Telepon</label>
-                        <input type="number" id="phone_number" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3">
+                        <input type="number" name="phone" id="phone_number" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3" value="{{ old('phone', $response['data']['phone']) }}">
                     </div>
 
                     <div class="d-flex flex-column mb-5 w-100">
                         <label for="email" class="mb-1 fs-6 text-grey">Email</label>
-                        <input type="email" id="email" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3">
+                        <input type="email" name="email" id="email" class="w-100 p-2 py-3 fs-6 border-grey-1 rounded-3" value="{{ old('email', $response['data']['email']) }}">
                     </div>
                     
                     <label class="mb-1 fs-6 opacity-0">halo teman teman, nama aku wildan</label>
                     <button class="btn-primary-homade rounded-3 w-100 align-items-center justify-content-center fs-2 p-4 fw-bold mb-5">Simpan</button>
                     <button class="btn-primary-homade rounded-3 w-100 align-items-center justify-content-center fs-2 p-4 fw-bold" onclick="openPopUp()">Ubah Password</button>
-                </div>
+                </form>
             <!-- end::Right Side -->
 
             <!-- begin::pop up change password -->

@@ -20,7 +20,7 @@ class ContactController extends Controller
         $this->contactService = new ContactService();
     }
 
-    public function contact(){
+    public function contact(Request $request){
         try{
 
             $contact = $this->contactService->information();
@@ -37,7 +37,7 @@ class ContactController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil mendapatkan data',
-                new ContactResource($contact),
+                (new ContactResource($contact))->toArray($request),
                 isJson:false
             );
 

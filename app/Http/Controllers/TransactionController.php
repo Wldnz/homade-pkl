@@ -83,8 +83,8 @@ class TransactionController extends Controller
             $response = $this->responseData->create(
                 'Successfully Getting Data!',
                 [
-                    'pagination' => new PaginationResource($transactions),
-                    'orders' => TransactionResource::collection($transactions),
+                    'pagination' => (new PaginationResource($transactions))->toArray($request),
+                    'orders' => TransactionResource::collection($transactions)->toArray($request),
                 ],
                 isJson: false
             );
@@ -139,7 +139,7 @@ class TransactionController extends Controller
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $response = $this->responseData->create(
+            $response = $this->responseData->create(
                 'Telah Terjadi Kesalahan Server',
                 status: 'error',
                 status_code: 500,

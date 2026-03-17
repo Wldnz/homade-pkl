@@ -107,11 +107,20 @@ class MenuService
 
     public function getWeeklyMenus(
         int $week = 1
-    ) {
-        $startTime = now()->addDays(7 * ($week - 1))->format('Y-m-d');
-        $endTime = now()->addDays(7 * $week)->format('Y-m-d');
+    ) {        
 
-        $schedules = MenuSchedule::whereBetween('date_at', [$startTime, $endTime])
+        if($week > 0){
+            $week -= 1;
+        }else if ($week == 0){
+            $week = 0;
+        }
+
+        $currentTime = now()->addDays($week * 7)->setTime(0,0,0);
+        $labubu = $currentTime->getDaysFromStartOfWeek();
+        $start_time = $currentTime->subDays($labubu);
+        $end_time = $start_time->clone()->addDays(4);
+
+        $schedules = MenuSchedule::whereBetween('date_at', [$start_time, $end_time])
             ->with('menu')
             ->get();
 
@@ -119,7 +128,7 @@ class MenuService
             return Carbon::parse($item->date_at)->format('Y-m-d');
         })->map(function ($item, $date) {
             return [
-                'date' => $date,
+                'date' => Carbon::parse($date)->format('d-m-Y'),
                 'menus' => $item->map(function ($schedule) {
                     return $schedule->menu;
                 }),
