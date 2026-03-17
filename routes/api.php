@@ -48,6 +48,7 @@ Route::name('api')->group(function () {
     Route::get('/themes', [ThemeController::class, 'index'])->name('themes');
 
     Route::prefix('contact')->group(function () {
+        Route::get('/full', [ContactController::class, 'full'])->name('contact-full');
         Route::get('/', [ContactController::class, 'contact'])->name('contact');
         Route::get('/social-media', [ContactController::class, 'socialMedia'])->name('social-media');
         Route::get('/address', [ContactController::class, 'address'])->name('address');
@@ -75,8 +76,12 @@ Route::name('api')->group(function () {
         });
 
         // order
+        Route::post('/pre-checkout', [TransactionController::class, 'preCheckout'])->name('pre-checkout');
         Route::post('/checkout', [TransactionController::class, 'checkout'])->name('checkout');
-        Route::post('/orders', [TransactionController::class, 'create'])->name('create-trabsaction');
+
+        Route::post('/uploud-payment-proof/{id}', [TransactionController::class, 'uploudPaymentProof'])->name('uploud-payment-proof');
+        Route::post('/cancel-order/{id}', [TransactionController::class, 'cancelOrder'])->name('cancel-order');
+        
         Route::get('/test-email', [TestEmailController::class, 'local'])->name('test-email');
         Route::post('/signout', [AuthController::class, 'signout'])->name('signout');
     });

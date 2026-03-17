@@ -27,17 +27,13 @@ class ProfileController extends Controller
         try{
             $achievements = $this->achievementService->all();
 
-            $limit_partner = $request->query('limit_partner', 15);
-            $partners = $this->partnerService->all(limit: $limit_partner);
+            $partners = $this->partnerService->all(is_has_limit:false);
 
             $response =  $this->responseData->create(
                 'Succesfully getting data',
                 data : [
                     'achievements' => $achievements,
-                    'partners' => [
-                        'pagination' => (new PaginationResource($partners))->toArray($request),
-                        'items' => PartnerResources::collection($partners)->toArray($request)
-                    ]
+                    'partners' => PartnerResources::collection($partners)->toArray($request),
                 ],
                 isJson:false
             );

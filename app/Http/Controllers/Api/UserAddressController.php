@@ -9,7 +9,6 @@ use App\ResponseData;
 use App\Service\UserAddressService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Log;
 use Validator;
 
@@ -123,7 +122,7 @@ class UserAddressController extends Controller
                 return $this->responseData->create(
                     "Maaf, Tidak Bisa Membuat Alamat Pengiriman Lebih Dari $address_limit",
                     status: 'warning',
-                    status_code: 403
+                    status_code: 400
                 );
             }
 
@@ -144,6 +143,7 @@ class UserAddressController extends Controller
             return $this->responseData->create(
                 'Berhasil Membuat Alamat Email',
                 new UserAddressResource($address),
+                status_code:201
             );
 
         } catch (Exception $e) {

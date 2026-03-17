@@ -136,6 +136,7 @@ class TransactionSeeder extends Seeder
                     'subtotal' => $subtotal,
                     'shipping_cost' => $final_shipping_cost,
                     'total_price' => $final_shipping_cost + $subtotal,
+                    'total_items' => count($orders),
                     'category' => $transaction['category'] ?? TransactionCategory::ORDER,
                     'status' => $transaction['status'],
                     'status_delivery' => $transaction['status_delivery'],

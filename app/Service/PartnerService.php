@@ -17,13 +17,16 @@ class PartnerService
         array $columns = ['name', 'name', 'image_url'],
         string|null $search = null,
         int|null $limit = 30,
-        bool $is_has_limit = false,
+        bool $is_has_limit = true,
     ) {
-        return Partner::when($search, function ($query, $search) {
+        $partners = Partner::when($search, function ($query, $search) {
             $search = strtolower($search);
             return $query->whereRaw('LOWER(name) LIKE ?', ["%$search%"]);
-        })
-            ->paginate($limit);
+        });
+        if($is_has_limit){
+            return $partners->paginate($limit);
+        }
+        return $partners->get();
     }
 
     public function detail(string $id)

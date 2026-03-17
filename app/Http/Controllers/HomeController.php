@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\PackageResource;
 use App\Http\Resources\PaginationResource;
+use App\Http\Resources\PartnerResources;
 use App\ResponseData;
 use App\Service\CategoryService;
 use App\Service\MenuService;
@@ -42,7 +43,7 @@ class HomeController extends Controller
 
             // weekly sementara jadi today menu aja ya!
 
-            $packages = $this->packageService->all();
+            $packages = $this->packageService->all(is_has_limit:false);
 
             // menu populer (blm ada)
             $menus = $this->menuService->getWeeklyPopuler();
@@ -54,10 +55,7 @@ class HomeController extends Controller
                     'menus' => MenuResource::collection($menus)->toArray($request),
                     'categories' => $categories,
                     'packages' => PackageResource::collection($packages)->toArray($request),
-                    'partners' => [
-                        'pagination' => (new PaginationResource($partners))->toArray($request),
-                        'items' => $partners['data'] ?? [],
-                    ],
+                    'partners' => PartnerResources::collection($partners)->toArray($request)
                 ],
                 isJson:false
             );

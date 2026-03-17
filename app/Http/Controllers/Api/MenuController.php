@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailMenuResource;
-use App\Http\Resources\MenuByDateResource;
 use App\Http\Resources\MenuResource;
 use App\Http\Resources\MenuScheduleResource;
 use App\Http\Resources\PaginationResource;
 use App\Http\Resources\SelectMenuResource;
 use App\ResponseData;
 use App\Service\MenuService;
+use App\Utils\ConvertDateSafely;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -37,7 +37,6 @@ class MenuController extends Controller
             $search = $request->query('search');
             $theme = $request->query('theme', '');
             $category = $request->query('category');
-            $page = (int) $request->query('page', 1);
             $limit = (int) $request->query('limit', 5);
 
             $menus = $this->menuService->all(
@@ -74,7 +73,6 @@ class MenuController extends Controller
 
     public function detail(string $id)
     {
-        // menu -> tema -> package -> relevantMenu
         try {
             $menu = $this->menuService->searchByID($id);
             if (!$menu) {
@@ -157,28 +155,12 @@ class MenuController extends Controller
     public function getByDate(Request $request)
     {
         try {
+            $tomorrow = Carbon::now()->addDays(1);
+            $date_at = $request->query('date_at', $tomorrow);
 
-            $validator = Validator::make($request->all(), [
-                'date' => 'date|required'
-            ],[
-                'date' => 'pada request :attribute pastikan yang dimasukkan adalah sebuah tanggal',
-                'required' => ':attribute dibutuhkan'
-            ], [
-                'date' => 'Tanggal Menu Tertentu'
-            ]);
+            $date_at = (new ConvertDateSafely())->convert($date_at, $tomorrow);
 
-            if ($validator->fails()) {
-                return $this->responseData->create(
-                    'Pastikan tanggal yang dimasukkan tidak kosong',
-                    errors: $validator->errors()->toArray(),
-                    status: 'warning',
-                    status_code: 422
-                );
-            }
-
-            $date_at = Carbon::parse($request->date);
-
-            $menus = $this->menuService->getByDate($date_at);
+            $menus = $this->menuService->getBySingleDate($date_at);
 
             if ($menus->isEmpty()) {
                 return $this->responseData->create(
@@ -190,8 +172,10 @@ class MenuController extends Controller
 
             return $this->responseData->create(
                 'Berhasil mendapatkan menu berdasarkan tanggal',
-                SelectMenuResource::collection($menus)
-                // $menus
+                [
+                    'date_at' => $date_at->format('d-m-Y'),
+                    'menus' => SelectMenuResource::collection($menus)
+                ]
             );
 
         } catch (Exception $e) {

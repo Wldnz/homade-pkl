@@ -5,23 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailTransactionResource;
 use App\Http\Resources\PaginationResource;
-use App\Http\Resources\SummaryMenuResource;
 use App\Http\Resources\TransactionResource;
-use App\Http\Resources\UserAddressResource;
 use App\Mail\SuccessCreateTransactionEmail;
 use App\ResponseData;
 use App\Service\MenuService;
 use App\Service\TransactionService;
 use App\Service\UserAddressService;
-use App\TransactionCategory;
-use App\TransactionResponse;
 use App\Utils\TransactionHelper;
-use Carbon\Carbon;
-use Date;
 use ErrorException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 use Log;
 use Exception;
 use Mail;
@@ -126,15 +118,16 @@ class TransactionController extends Controller
         }
     }
 
-    public function checkout(Request $request)
+    public function preCheckout(Request $request)
     {
         try {
-           
+
             // saya buatkan function / handler pre checkout untuk memudahkan jika ada perubahan dalam satu function yaw!
             return $this->transactionHelper->checkout(
                 $request,
-                is_json:true,
-                is_pre_checkout:true
+                is_json: true,
+                is_pre_checkout: true,
+                is_from_website: false,
             );
 
         } catch (Exception $e) {
@@ -146,16 +139,17 @@ class TransactionController extends Controller
             );
         }
     }
-    public function create(Request $request)
+    public function checkout(Request $request)
     {
         try {
 
             // validasi sudah ada disini semua ....
-            $pre_transction_data  = $this->transactionHelper->checkout(
+            $pre_transction_data = $this->transactionHelper->checkout(
                 $request,
+                is_from_website: false,
             );
 
-            if($pre_transction_data['status'] !== 'success'){
+            if ($pre_transction_data['status'] !== 'success') {
                 return response()->json(
                     $pre_transction_data,
                     $pre_transction_data['status_code']
@@ -164,7 +158,7 @@ class TransactionController extends Controller
 
             $created_transaction_info = $this->transactionService->create($pre_transction_data);
 
-            if(!$created_transaction_info['is_success']){
+            if (!$created_transaction_info['is_success']) {
                 throw new ErrorException($created_transaction_info['message']);
             }
 
@@ -187,5 +181,124 @@ class TransactionController extends Controller
         }
     }
 
+    public function uploudPaymentProof(Request $request, string $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'uplouded_file' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ], [
+                'required' => 'Membutuhkan :attribute',
+                'min' => ':attribute membutuhkan minimal :min karakter!',
+                'string' => ':attribute harus berupa string',
+                'image' => ':attribute harus berupa gambar',
+            ], [
+                'uplouded_file' => 'Buki Pembayaran',
+            ]);
+
+
+            if ($validator->fails()) {
+                return $this->responseData->create(
+                    'Data yang diberikan belum valid!',
+                    errors: $validator->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                );
+
+            }
+
+            $transaction = $this->transactionService->detail($id);
+
+            if (!$transaction) {
+                return $this->responseData->create(
+                    'Tidak Dapat Menemukan Transaksi',
+                    status: 'warning',
+                    status_code: 404,
+                );
+
+            }
+
+            // uploud ulang / buat ulang payment transaction!;
+            $uploud_info = $this->transactionService->uploudPaymentProof($transaction, $request->file('uplouded_file'));
+            if (!$uploud_info['is_success']) {
+                return $this->responseData->create(
+                    $uploud_info['message'],
+                    status: 'warning',
+                    status_code: 400,
+                );
+
+            }
+
+            return $this->responseData->create(
+                $uploud_info['message'],
+                status: 'success',
+                status_code: $uploud_info['is_created'] ? 201 : 200,
+            );
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
+    }
+
+    public function cancelOrder(Request $request, string $id)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'reason' => 'string|required|min:10',
+            ], [
+                'required' => 'Membutuhkan :attribute',
+                'min' => ':attribute membutuhkan minimal :min karakter!',
+                'string' => ':attribute harus berupa string',
+            ], [
+                'reason' => 'Alasan'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->responseData->create(
+                    'Data yang diberikan belum valid!',
+                    errors: $validator->errors()->toArray(),
+                    status: 'warning',
+                    status_code: 422,
+                );
+            }
+
+            $transaction = $this->transactionService->detail($id);
+
+            if (!$transaction) {
+                return $this->responseData->create(
+                    'Tidak dapat menemukan transaksi!',
+                    status: 'warning',
+                    status_code: 404,
+                );
+            }
+
+            $rejected_info = $this->transactionService->rejectTransaction($transaction, $request->reason, false);
+
+            if (!$rejected_info['is_success']) {
+                return $this->responseData->create(
+                    $rejected_info['message'],
+                    status: 'warning',
+                    status_code: 400,
+                );
+            }
+
+            return $this->responseData->create(
+                'Berhasil Dalam Membatalkan Transaksi',
+            );
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+            );
+        }
+    }
 
 }

@@ -243,6 +243,7 @@ class TransactionService
 
                     $transaction->payment_proof->url = $uplouded['secure_url'];
                     $transaction->payment_proof->status = TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION;
+                     $transaction->payment_proof->reason = '';
                     $transaction->payment_proof->public_id = $uplouded['public_id'];
 
                     $transaction->payment_proof->save();
@@ -286,7 +287,7 @@ class TransactionService
 
         return [
             'is_success' => false,
-            'message' => 'tidak memenuhi untuk menguploud bukti pembayaran'
+            'message' => 'Transaksi tidak memenuhi persyaratan untuk menguploud bukti pembayaran!'
         ];
 
     }

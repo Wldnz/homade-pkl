@@ -374,7 +374,7 @@ class TransactionController extends Controller
             if (!$rejected_info['is_success']) {
                 $response = $this->responseData->create(
                     $rejected_info['message'],
-                    status: 'error',
+                    status: 'warning',
                     status_code: 400,
                     isJson: false,
                 );

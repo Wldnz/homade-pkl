@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
+use App\Http\Resources\PartnerResources;
 use App\ResponseData;
 use App\Service\AchievementService;
 use App\Service\PartnerService;
@@ -54,7 +56,9 @@ class ProfileController extends Controller
         try{
             // btw blm ada limit untuk saat ini, jadi semua data ke ambil
             $limit = $request->query('limit', 3);
-            $partners = $this->partnerService->all(limit: $limit);
+            $partners = $this->partnerService->all(
+                limit: $limit,
+            );
 
             if($partners->isEmpty()){
                 return $this->responseData->create(
@@ -66,7 +70,10 @@ class ProfileController extends Controller
 
             return $this->responseData->create(
                 'Succesfully getting data',
-                 $partners
+                 [
+                    'pagination' => new PaginationResource($partners),
+                    'partners' => PartnerResources::collection($partners),
+                 ]
             );
 
         }catch(Exception $e){

@@ -50,9 +50,9 @@ class UserController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'first_name' => 'required|string|min:3',
-                // las_name (opsional),
+                'last_name' => 'string',
                 'phone' => 'required|phone:mobile,ID|min:8|max:15',
-                'email' => 'required|email|min:3',
+                'email' => 'email',
             ], [
                 'required' => ':attribute dibutuhkan!',
                 'email' => ':attribute harus memiliki email yang valid!',
@@ -79,7 +79,7 @@ class UserController extends Controller
             $this->userService->edit($user, [
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name ?? '',
-                'email' => $request->email,
+                'email' => $request->email ?? $user->email,
                 'phone' => $request->phone
             ]);
 

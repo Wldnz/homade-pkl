@@ -17,7 +17,7 @@ class ConvertDateSafely
     }
 
     public function convert(
-        string $date_at,
+        string|Carbon|Date $date_at,
         string|Carbon|Date $default_date = null,
     ){
         try{
