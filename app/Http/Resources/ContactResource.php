@@ -15,10 +15,10 @@ class ContactResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'name' => $this->app_name, 
             'email' => $this->email, 
             'customer_care_phone' => $this->customer_care_phone, 
-            'start_day' => $this->start_day, 
-            'end_day' => $this->end_day, 
+            'information_operational_day' => $this->operating_days_info, 
             'open_hours_at' => $this->open_hours_at, 
             'close_hours_at' => $this->close_hours_at, 
             'address' => $this->address, 

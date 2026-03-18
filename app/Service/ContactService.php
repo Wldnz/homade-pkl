@@ -52,4 +52,20 @@ class ContactService
         ]);
     }
 
+    // Tambahkan di dalam class ContactService
+    public function editHandler(array $data)
+    {
+        try {
+            $setting = Setting::first();
+            if (!$setting) {
+                return Setting::create($data);
+            }
+            $setting->update($data);
+            return $setting;
+        } catch (\Exception $e) {
+            \Log::error("Gagal update setting: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
 }

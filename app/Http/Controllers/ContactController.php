@@ -64,7 +64,7 @@ class ContactController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'fullname' => 'required|string|min:3',
+                'fullname' => 'required|string|min:1',
                 'email' => 'required|email',
                 'subject' => 'required|string|min:3',
                 'message' => 'required|string|min:10',

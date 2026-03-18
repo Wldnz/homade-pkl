@@ -158,7 +158,16 @@ Route::middleware([
     Route::get('/accounts', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('accounts');
     Route::get('/accounts/{id}', [\App\Http\Controllers\Admin\AccountController::class, 'detail'])->name('detail-account');
     Route::get('/account-create', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('add-account');
+    // payment method
+    Route::get('/payment-methods', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'index'])->name('payment-methods');
+    Route::get('/payment-methods/{id}', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'detail'])->name('detail-payment-method');
+    Route::get('/create-payment-method', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'store'])->name('create-payment-method-page');
+    Route::post('/create-payment-method', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'storeHandler'])->name('create-payment-method');
+    Route::put('/payment-methods/{id}', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'editHandler'])->name('edit-payment-method');
+    Route::delete('/payment-methods/{id}', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'deleteHandler'])->name('delete-payment-method');
     // setting
+    Route::get('/setting', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('setting');
+    Route::put('/setting', [\App\Http\Controllers\Admin\SettingController::class, 'editHandler'])->name('edit-setting');
 });
 
 Route::get('/testing-notificiation', function () {

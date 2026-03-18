@@ -15,20 +15,18 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         Setting::create([
-            "address" => "Jl.Tebet Timur Dalam VI No.3, RT.008 RW.011 Kel. Tebet Timur, Kec. Jakarta Selatan, Jakarta 12820 Telp. 0857-1180-1336.",
-            "start_day" => EnumDay::MONDAY,
-            "end_day" => EnumDay::FRIDAY,
+            "app_name" => "Homade",
+            "address" => "Jl. Tebet Timur Dalam VI No.3, RT.008 RW.011, Kec. Tebet Timur, Jakarta Selatan, 12820.",
+            "operating_days_info" => "Senin - Jumat",
             "email" => 'support@homade.id',
-            "customer_care_phone" => "081234567891",
+            "customer_care_phone" => "085711801336",
             "open_hours_at" => "09:00:00",
             "close_hours_at" => "17:00:00",
-            // "youtube_url" => ,
             "instagram_url" => "https://www.instagram.com/homade.indonesia/?hl=id",
-            // "facebook_url" => ,
-            // "tiktok_url" => ,
-            // "x_url" => ,
-            "longitude" => fake()->longitude(),
-            "latitude" => fake()->latitude(),
+            "is_ordering_active" => true,
+            "longitude" => 106.8574, // Contoh koordinat Tebet
+            "latitude" => -6.2305,
+            "shipping_fee_per_km" => 5000,
             "created_at" => now(),
             "updated_at" => now(),
         ]);
