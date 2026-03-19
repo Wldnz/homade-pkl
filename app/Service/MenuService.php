@@ -22,9 +22,13 @@ class MenuService
         int $limit = 10,
         string|null $status_active = 'active',
         bool $is_has_limit = true,
+        bool $is_with_price = false,
     ) {
 
         $menus = Menu::with(['menu_categories', 'theme'])
+            ->when($is_with_price, function ($query) {
+                return $query->with('prices');
+            })
             ->when($search, function ($query, $search) {
                 return $query->whereRaw('LOWER(name) LIKE ? ', ["%$search%"]);
             })
@@ -102,22 +106,26 @@ class MenuService
     }
 
     public function getWeeklyMenus(
-        int $week = 1
-    ) {        
+        int $week = 1,
+        bool $is_with_price = false,
+    ) {
 
-        if($week > 0){
+        if ($week > 0) {
             $week -= 1;
-        }else if ($week == 0){
+        } else if ($week == 0) {
             $week = 0;
         }
 
-        $currentTime = now()->addDays($week * 7)->setTime(0,0,0);
+        $currentTime = now()->addDays($week * 7)->setTime(0, 0, 0);
         $labubu = $currentTime->getDaysFromStartOfWeek();
         $start_time = $currentTime->subDays($labubu);
         $end_time = $start_time->clone()->addDays(4);
 
         $schedules = MenuSchedule::whereBetween('date_at', [$start_time, $end_time])
             ->with('menu')
+            ->when($is_with_price, function ($query) {
+                return $query->with('menu.prices');
+            })
             ->get();
 
         $schedules = $schedules->groupBy(function ($item) {
@@ -142,9 +150,9 @@ class MenuService
             'prices',
             'schedule'
         ])
-        ->whereHas('schedule', function($query)use($date){
-            $query->whereDate('date_at', $date);
-        })->get();
+            ->whereHas('schedule', function ($query) use ($date) {
+                $query->whereDate('date_at', $date);
+            })->get();
     }
 
     public function getByMultipleDay(array $date)

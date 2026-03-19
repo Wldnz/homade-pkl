@@ -12,9 +12,36 @@ use Log;
 class UserService
 {
 
+    public function all(
+        string|null $search = null,
+        $limit = 15,
+        bool $is_has_limit = true,
+        bool $with_address = false,
+        string|null $role = null
+    ){
+        $users = User::when($role, function($query, $role){
+            return $query->where('role', $role);
+        })
+        ->when($with_address, function($query){
+            return $query->with('address');
+        })
+        ->when($search, function($query, $search){
+            $search = strtolower($search);
+            return $query->whereRaw('LOWER(name) LIKE' , ["%$search%"]);
+        });
+        if($is_has_limit){
+            return $users->paginate($limit);
+        }
+        return $users->get();
+    }
+
     public function currentUser(
     ) {
         return auth()->user();
+    }
+
+    public function getByID(string $id){
+        return User::where('id', $id)->first();
     }
 
     public function getByEmail(

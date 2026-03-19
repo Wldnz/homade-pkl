@@ -8,6 +8,7 @@ use App\ResponseData;
 use App\Service\MenuService;
 use App\Service\TransactionService;
 use App\Service\UserAddressService;
+use App\Service\UserService;
 use App\TransactionCategory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -76,8 +77,8 @@ class TransactionHelper
             $response = $this->convertPayloadDataIntoArray($request, $is_json);
             if ($response['status'] !== 'success') {
                 return redirect()->back()->withInput()->with(compact('response'));
-                }
-                // Pastikan merge hasil array-nya ke request
+            }
+            // Pastikan merge hasil array-nya ke request
             $request->merge($response['data']);
         }
 
@@ -278,6 +279,216 @@ class TransactionHelper
         );
     }
 
+    public function checkoutForAdmin(Request $request)
+    {
+        $response = $this->convertPayloadDataIntoArray($request, false);
+
+        if (isset($response['status']) && $response['status'] !== 'success') {
+            return $response;
+        }
+        // Pastikan merge hasil array-nya ke request
+        $request->merge($response['data']);
+
+        // 1. Validasi Data Payload Admin
+        // 1. Validasi Data Payload Admin
+        $rules = [
+            'transaction_info.shipping_cost' => 'required|numeric|min:0',
+            'transaction_info.is_success' => 'nullable|boolean',
+            'transaction_info.is_created' => 'nullable|boolean',
+            'transaction_info.created_at' => 'required_if:transaction_info.is_created,true|nullable',
+            'transaction_info.payment_type' => 'nullable|in:transfer,cash',
+            'transaction_info.note' => 'nullable|string',
+
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|string',
+            'items.*.packages' => 'required|array|min:1',
+            'items.*.packages.*.id' => 'required|string',
+            'items.*.packages.*.quantity' => 'required|integer|min:1',
+            'items.*.packages.*.note' => 'nullable|string',
+
+            'user_info.user_id' => 'required|string',
+            'user_info.contact_email' => 'required|email',
+
+            'delivery_info.delivery_at' => 'required|date',
+            'delivery_info.user_address_id' => 'nullable|string',
+            'delivery_info.new_user_address' => 'required_without:delivery_info.user_address_id|array',
+            'delivery_info.new_user_address.fullname' => 'required_without:delivery_info.user_address_id|string',
+            'delivery_info.new_user_address.phone' => 'required_without:delivery_info.user_address_id|string',
+            'delivery_info.new_user_address.address' => 'required_without:delivery_info.user_address_id|string',
+            'delivery_info.new_user_address.longitude' => 'required_without:delivery_info.user_address_id|string',
+            'delivery_info.new_user_address.latitude' => 'required_without:delivery_info.user_address_id|string',
+        ];
+
+        // 2. Validasi Payment Proof (Hanya jika is_success = true dan via Transfer)
+        $isSuccess = $request->input('transaction_info.is_success', false);
+        $paymentType = $request->input('transaction_info.payment_type', 'transfer');
+
+        if ($isSuccess && $paymentType === 'transfer') {
+            $rules['payment_proof'] = 'required|image|mimes:jpeg,png,jpg,webp|max:2048';
+        } else {
+            $rules['payment_proof'] = 'image|mimes:jpeg,png,jpg,webp|max:2048';
+        }
+
+        // 3. Custom Messages
+        $messages = [
+            'required' => ':attribute wajib diisi!',
+            'required_without' => ':attribute wajib diisi jika Anda tidak memilih Alamat Tersimpan.',
+            'required_if' => ':attribute wajib diisi jika opsi sebelumnya diaktifkan.',
+            'array' => ':attribute harus berupa list data (array).',
+            'string' => ':attribute harus berupa teks.',
+            'integer' => ':attribute harus berupa bilangan bulat.',
+            'numeric' => ':attribute harus berupa angka.',
+            'boolean' => ':attribute harus berupa Ya/Tidak (Boolean).',
+            'date' => ':attribute harus berupa format tanggal yang valid.',
+            'email' => ':attribute harus berupa format email yang valid.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'min' => ':attribute minimal :min.',
+            'max' => ':attribute maksimal ukuran :max.',
+            'image' => ':attribute harus berupa file gambar.',
+            'mimes' => ':attribute hanya mendukung format: :values.',
+
+            // Pesan super spesifik biar admin ngga bingung
+            'transaction_info.created_at.required_if' => 'Tanggal Dibuat wajib diisi jika opsi Transaksi Lawas diaktifkan!',
+            'payment_proof.required' => 'Bukti Pembayaran wajib diunggah untuk pesanan Transfer dengan status Langsung Success!'
+        ];
+
+        // 4. Custom Attributes
+        $attributes = [
+            'transaction_info.shipping_cost' => 'Ongkos Kirim',
+            'transaction_info.is_success' => 'Status Langsung Success',
+            'transaction_info.is_created' => 'Opsi Transaksi Lawas',
+            'transaction_info.created_at' => 'Tanggal Transaksi Dibuat',
+            'transaction_info.payment_type' => 'Tipe Pembayaran',
+            'transaction_info.note' => 'Catatan Pesanan',
+
+            'items' => 'Daftar Menu Pesanan',
+            'items.*.id' => 'ID Menu',
+            'items.*.packages' => 'Daftar Paket Menu',
+            'items.*.packages.*.id' => 'ID Paket',
+            'items.*.packages.*.quantity' => 'Jumlah Qty Paket',
+            'items.*.packages.*.note' => 'Catatan Paket',
+
+            'user_info.user_id' => 'Pengguna (User)',
+            'user_info.contact_email' => 'Email Kontak',
+
+            'delivery_info.delivery_at' => 'Waktu Pengiriman',
+            'delivery_info.user_address_id' => 'Alamat Tersimpan',
+            'delivery_info.new_user_address' => 'Data Alamat Baru',
+            'delivery_info.new_user_address.fullname' => 'Nama Penerima',
+            'delivery_info.new_user_address.phone' => 'Nomor HP Penerima',
+            'delivery_info.new_user_address.address' => 'Detail Alamat',
+            'delivery_info.new_user_address.longitude' => 'Longitude',
+            'delivery_info.new_user_address.latitude' => 'Latitude',
+
+            'payment_proof' => 'Bukti Transfer'
+        ];
+
+        // 5. Eksekusi Validator
+        $validator = Validator::make($request->all(), $rules, $messages, $attributes);
+
+
+        if ($validator->fails()) {
+            return $this->responseData->create(
+                'Data Yang Diberikan Belum Valid',
+                errors: $validator->errors()->toArray(),
+                status: 'warning',
+                status_code: 422,
+                isJson: false
+            );
+        }
+
+        // mendapatkan menu dari paket menu yang dipilih
+        $delivery_at = Carbon::parse($request->delivery_info['delivery_at']);
+        $menus = $this->menuService->getOrderedMenu($request->items, $delivery_at);
+
+        if ($menus->isEmpty()) {
+            return $this->responseData->create(
+                'Tidak dapat menemukan menu yang dipesan',
+                status: 'warning',
+                status_code: 404,
+                isJson: false
+            );
+        }
+
+        $category = $this->getCategoryTransaction($menus);
+
+        $userService = new UserService();
+        $user = $userService->getByID($request->user_info['user_id']);
+
+        if (!$user) {
+            return $this->responseData->create(
+                'Tidak dapat menemukan pengguna',
+                status: 'warning',
+                status_code: 404,
+                isJson: false,
+            );
+        }
+
+        $is_guest = $user->email === 'default.user@homade.id';
+
+        // 4. Handle Address
+        $address = null;
+        if (isset($request->delivery_info['user_address_id']) && !empty($request->delivery_info['user_address_id'])) {
+            $address = $this->userAddressService->byID(
+                $request->delivery_info['user_address_id'],
+                false,
+            );
+            if (!$address) {
+                return $this->responseData->create(
+                    'Tidak dapat menemukan alamat customer',
+                    status: 'warning',
+                    status_code: 404,
+                    isJson: false
+                );
+            };
+        } else {
+            // Karena tidak perlu save_to_profile, kita cukup lewatkan data mentahnya
+            $newAddr = $request->delivery_info['new_user_address'];
+            $address = [
+                'received_name' => $newAddr['fullname'],
+                'phone' => $newAddr['phone'],
+                'label' => $newAddr['label'],
+                'address' => $newAddr['address'],
+                'note' => $newAddr['note'] ?? null,
+                'longitude' => $newAddr['longitude'],
+                'latitude' => $newAddr['latitude'],
+                'save_to_profile' => $newAddr['save_to_profile'] ?? false,
+            ];
+        }
+        $is_created = $request->transaction_info['is_created'] ?? false;
+        $created_at = $is_created ? $request->transaction_info['created_at'] : null;
+
+        $data = [
+            'transaction' => [
+                'sub_total' => $this->countTotalPrice($menus),
+                'total_item' => $menus->count(),
+                'shipping_cost' => $request->transaction_info['shipping_cost'],
+                'category' => $category,
+                'note' => $request->transaction_info['note'] ?? '',
+                'is_success' => $isSuccess,
+                'is_guest' => $is_guest,
+                'payment_type' => $paymentType,
+                'is_created' => $is_created,
+                'created_at' => $created_at,
+            ],
+            'delivery_info' => [
+                'delivery_at' => $delivery_at,
+                'user_address' => $address,
+            ],
+            'user_info' => $user,
+            'summary_orders' => [
+                'items' => SummaryMenuResource::collection($menus)->toArray($request),
+            ],
+            'payment_proof' => $request->file('payment_proof')
+        ];
+
+        return $this->responseData->create(
+            'Berhasil Membuatkan Data Check-Out',
+            $data,
+            isJson: false,
+        );
+    }
+
     public function getCategoryTransaction($orderedMenus)
     {
         $category = TransactionCategory::ORDER;
@@ -355,13 +566,14 @@ class TransactionHelper
         return true;
     }
 
-    public function canOrderDeliveryWeeklyMenu(Carbon $delivery_at){
+    public function canOrderDeliveryWeeklyMenu(Carbon $delivery_at)
+    {
         $current_date = now();
 
         // ketika delivery_at nya di bawah tanggal skrng maka tidak bisa!
         // ketika delivery_at nya besok dan hari ini sudah di jam 3 sore lebih maka tidak bisa order!
         // dan ketika delivery_at nya hari ini maka tidak bisa pesan menu har ini
-        if($current_date->greaterThan($delivery_at) || $delivery_at->isToday() || $delivery_at->isTomorrow() && $current_date->greaterThan(now()->setTime(15,0,0))){
+        if ($current_date->greaterThan($delivery_at) || $delivery_at->isToday() || $delivery_at->isTomorrow() && $current_date->greaterThan(now()->setTime(15, 0, 0))) {
             return false;
         }
 

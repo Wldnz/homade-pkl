@@ -31,16 +31,16 @@ class MenuScheduleResource extends JsonResource
                     'categories' => $menu->menu_categories->map(function ($category) {
                         return $category->categories->name;
                     }),
-                    // 'packages' => $this->menu->prices->map(function ($price) {
-                    //     return [
-                    //         'id' => $price->id,
-                    //         'name' => $price->package->name,
-                    //         'description' => $price->package->description,
-                    //         'price' => $price->price,
-                    //         'minimum_order' => $price->package->minimum_order,
-                    //         'image_url' => $price->package->image_url,
-                    //     ];
-                    // })
+                    'packages' => isset($menu->prices)? $menu->prices->map(function ($price) {
+                        return [
+                            'id' => $price->id,
+                            'name' => $price->package->name,
+                            'description' => $price->package->description,
+                            'price' => $price->price,
+                            'minimum_order' => $price->package->minimum_order,
+                            'image_url' => $price->package->image_url,
+                        ];
+                    }) : []
                 ];
             })
         ];

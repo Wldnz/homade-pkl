@@ -28,6 +28,9 @@ class Transaction extends Model
         'refund_reason',
         'note',
         'delivery_at',
+        'contact_email',
+        'access_token',
+        'is_guest',
         'created_at',
         'updated_at'
     ];

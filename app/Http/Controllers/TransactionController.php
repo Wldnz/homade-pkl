@@ -37,10 +37,10 @@ class TransactionController extends Controller
 
     public function __construct()
     {
-        $this->transactionService = new TransactionService;
-        $this->transactionHelper = new TransactionHelper;
-        $this->menuService = new MenuService;
-        $this->userAddressService = new UserAddressService;
+        $this->transactionService = new TransactionService();
+        $this->transactionHelper = new TransactionHelper();
+        $this->menuService = new MenuService();
+        $this->userAddressService = new UserAddressService();
         $this->paymentMethodeService = new PaymentMethodService();
         $this->responseData = new ResponseData;
     }
@@ -231,7 +231,7 @@ class TransactionController extends Controller
             // hapus data checkout_disini..
             session()->forget('session_pre_check_out_summary_data');
             session()->put('session_after_transaction_result', $response);
-            Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
+            // Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
             // redirect ke transaction berhasil di buat apa ke order transaction?
             return redirect()->route('user.after-transaction');
         } catch (Exception $e) {
@@ -240,6 +240,7 @@ class TransactionController extends Controller
                 'Telah Terjadi Kesalahan Pada Server',
                 status: 'error',
                 status_code: 500,
+                isJson:false,
             );
             return redirect()->back()->withInput()->with(compact('response'));
         }

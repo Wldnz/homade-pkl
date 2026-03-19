@@ -9,8 +9,7 @@ use Config;
 use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Log;
-use Psr\Log\LogLevel;
+use Str;
 
 class UserSeeder extends Seeder
 {
@@ -24,6 +23,15 @@ class UserSeeder extends Seeder
        $password_owner = Config::get('app.user_management_password.owner');    
 
         $users = [
+             [
+                "first_name" => 'default_user_homade',
+                "last_name" => '',
+                "email" => "default.user@homade.id",
+                "password" => Hash::make(Str::random(60)),
+                'role' => UserRole::CUSTOMER,
+                'phone' => '812345678',
+                'address' => []
+            ],
             [
                 "first_name" => fake()->firstName(),
                 "last_name" => fake()->lastName(),
@@ -76,9 +84,6 @@ class UserSeeder extends Seeder
                 'phone' => $user['phone'] ?? null,
                 'password' => $user['password'],
             ]);
-           if($user['role'] == UserRole::ADMIN){
-             Log::log(LogLevel::DEBUG, 'password for admin is : '. $password_admin);
-           }
             if ($createdUser->role === UserRole::CUSTOMER) {
                 foreach ($user['address'] as $address) {
                     UserAddress::create([

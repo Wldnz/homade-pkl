@@ -4,13 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailTransactionResource;
+use App\Http\Resources\MenuScheduleResource;
 use App\Http\Resources\PaginationResource;
+use App\Http\Resources\SelectMenuResource;
 use App\Mail\RejectedTransaction;
 use App\Mail\SuccessfullyCreatedNewInvoice;
 use App\ResponseData;
+use App\Service\ContactService;
+use App\Service\MenuService;
 use App\Service\TransactionService;
+use App\Service\UserService;
 use App\StatusDelivery;
+use App\StatusTransaction;
+use App\UserRole;
 use App\Utils\CalculateDistance;
+use App\Utils\TransactionHelper;
+use ErrorException;
 use Exception;
 use Illuminate\Http\Request;
 use Log;
@@ -276,7 +285,7 @@ class TransactionController extends Controller
         }
     }
 
-     public function uploudThePaymentProofHandler(Request $request, string $id)
+    public function uploudThePaymentProofHandler(Request $request, string $id)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -632,8 +641,87 @@ class TransactionController extends Controller
         }
     }
 
-    public function store()
+    public function store(Request $request)
     {
-        return view('admin.order.store');
+        // data - data akun beserta alamatnya
+        // data default akun beserta alamatnya
+        // data - data menu mingguan (minggu ini)
+        // data - data menu (keseluruhan (no limit!))
+        $userService = new UserService();
+        $menuService = new MenuService();
+        $contactService = new ContactService();
+        $users = $userService->all(
+            role: UserRole::CUSTOMER->value,
+            is_has_limit: false,
+            with_address: true
+        );
+        $default_user = $users->where('email', 'default.user@homade.id')->first();
+        $menus = $menuService->all(
+            is_has_limit: false,
+            is_with_price: true,
+        );
+        $menuWeekly = $menuService->getWeeklyMenus(
+            is_with_price: true,
+        );
+        $response = $this->responseData->create(
+            'Berhasil Mendapatkan Data',
+            [
+                'user_info' => [
+                    'default' => $default_user,
+                    'users' => $users->toArray(),
+                ],
+                'menu_info' => [
+                    'weekly' => MenuScheduleResource::collection($menuWeekly)->toArray($request),
+                    'menus' => SelectMenuResource::collection($menus)->toArray($request),
+                ],
+                'delivery_info' => [
+                    'fee_per_km' => $contactService->shipping_fee_per_km(),
+                ],
+            ],
+            isJson: false
+        );
+        return view('admin.order.store', compact('response'));
     }
+
+    public function storeHandler(Request $request)
+    {
+        try {
+            $transactionHelper = new TransactionHelper();
+
+            $response = $transactionHelper->checkoutForAdmin($request);
+            if ($response['status'] !== 'success') {
+                return redirect()->back()->withInput()->with(compact('response'));
+            }
+            // buat transaksinya disini
+            $created_info = $this->transactionService->create(
+                $response['data'],
+                false,
+                $response['data']['payment_proof'],
+            );
+
+            if (!$created_info['is_success']) {
+                throw new ErrorException($created_info['message']);
+            }
+
+            $response = $this->responseData->create(
+                'Berhasil dalam membuat transaksi',
+                status_code: 201,
+                isJson: false,
+            );
+
+            return redirect()->route('admin.orders')->with(compact('response'));
+
+        } catch (Exception $e) {
+            Log::error('Error when storing the transaction from admin :' . $e->getMessage());
+            $response = $this->responseData->create(
+                'Telah Terjadi Kesalahan Pada Server',
+                status: 'error',
+                status_code: 500,
+                isJson: false
+            );
+            return redirect()->back()->withInput()->with(compact('response'));
+        }
+
+    }
+
 }

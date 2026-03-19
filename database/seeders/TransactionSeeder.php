@@ -108,7 +108,7 @@ class TransactionSeeder extends Seeder
             ]
         ];
 
-        $users = User::where('role', UserRole::CUSTOMER)->get();
+        $users = User::where('role', UserRole::CUSTOMER)->whereNot('email', 'default.user@homade.id')->get();
         $shippingCost = 5000;
 
         foreach ($users as $user) {
@@ -143,6 +143,7 @@ class TransactionSeeder extends Seeder
                     'refund_status' => $transaction['refund_status'] ?? RefundStatus::NONE,
                     'refund_reason' => $transaction['refund_reason'] ?? null,
                     'delivery_at' => $transaction['delivery_at'],
+                    'contact_email' => $user->email,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

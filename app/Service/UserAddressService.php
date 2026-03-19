@@ -19,9 +19,13 @@ class UserAddressService
             ->get();
     }
 
-    public function byID(string $id)
+    public function byID(string $id, $is_from_user = true)
     {
-        return UserAddress::where('id', $id)->first();
+        return UserAddress::where('id', $id)
+        ->when($is_from_user, function($query){
+            return $query->where('id_user', auth()->user()->id);
+        })
+        ->first();
     }
 
     public function save(array $data)

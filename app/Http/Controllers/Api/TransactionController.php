@@ -163,7 +163,7 @@ class TransactionController extends Controller
             }
 
             // pake que que?
-            Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
+            // Mail::to($created_transaction_info['user']['email'])->send(new SuccessCreateTransactionEmail($created_transaction_info['transaction']));
 
             return $this->responseData->create(
                 'Berhasil membuat transaksi pemesanan',

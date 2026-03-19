@@ -56,7 +56,6 @@ Route::name('user.')->group(function () {
 
             Route::get('/orders', [TransactionController::class, 'orders'])->name('orders');
             Route::get('/orders/{id}', [TransactionController::class, 'detail'])->name('detail-order');
-
             // uploud & uploud bukti pembayaran
             Route::post('/order/payment-proof/{id}', [TransactionController::class, 'uploudPaymentProofHandler'])->name('uploud-payment-proof');
             // batalkan trasanksi
@@ -72,6 +71,10 @@ Route::name('user.')->group(function () {
 
         Route::get('/signout', [AuthController::class, 'signout'])->name('signout');
     });
+});
+
+Route::name('guest.')->prefix('guest')->group(function () {
+    Route::get('/orders/{id}', [\App\Http\Controllers\Guest\TransactionController::class, 'detail'])->name('detail-order');
 });
 
 // tambahin role juga untuk middlewwarenya
@@ -125,8 +128,8 @@ Route::middleware([
     // pemesanan
     Route::get('/orders', [\App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('orders');
     Route::get('/orders/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'detail'])->name('detail-order');
-    Route::get('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order-page');
-    Route::post('/order-create', [\App\Http\Controllers\Admin\TransactionController::class, 'storeHandler'])->name('add-order');
+    Route::get('/create-order', [\App\Http\Controllers\Admin\TransactionController::class, 'store'])->name('add-order-page');
+    Route::post('/create-order', [\App\Http\Controllers\Admin\TransactionController::class, 'storeHandler'])->name('add-order');
 
     // note: id yang diberikan adalah id transaksi
     Route::put('/order/change-shipping-cost/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeShippingCostHandler'])->name('change-shipping-cost');

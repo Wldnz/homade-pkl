@@ -30,6 +30,9 @@ return new class extends Migration {
             $table->text('cancelled_reason')->nullable();
             $table->text('note')->nullable();
             $table->timestamp('delivery_at');
+            $table->string('contact_email', 265);
+            $table->string('access_token', 265)->nullable();
+            $table->boolean('is_guest')->default(false);
             $table->timestamps();
         });
 

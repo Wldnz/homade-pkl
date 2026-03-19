@@ -52,6 +52,12 @@ class ContactService
         ]);
     }
 
+    public function shipping_fee_per_km(){
+        return Setting::first([
+            'shipping_fee_per_km'
+        ])->value('shipping_fee_per_km');
+    }
+
     // Tambahkan di dalam class ContactService
     public function editHandler(array $data)
     {
