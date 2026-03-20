@@ -43,7 +43,7 @@ class ThemeController extends Controller
             $response = $this->responseData->create(
                 'Berhasil mendapatkan Tema',
                 [
-                    'pagination' => new PaginationResource($themes),
+                    'pagination' => (new PaginationResource($themes))->toArray($request),
                     'themes' => $themes,
                 ],
                 isJson: false,
@@ -71,7 +71,7 @@ class ThemeController extends Controller
 
             if (!$theme) {
                 $response = $this->responseData->create(
-                    'Tidak dapat menemukan kategori',
+                    'Tidak dapat menemukan tema',
                     status: 'warning',
                     status_code: 404,
                     isJson: false,
@@ -143,10 +143,10 @@ class ThemeController extends Controller
 
             return redirect()->route('admin.themes')->with(compact('response'));
 
-        } catch (Exception $e) {
+        }catch (Exception $e) {
             Log::error($e->getMessage());
             $response = $this->responseData->create(
-                'Telah Terjadi Kesalahan Pada Server',
+                'Telah Terjadi Duplikasi Data Atau Terjadi Kesalahan Pada Server!',
                 status: 'error',
                 status_code: 500,
                 isJson: false,
@@ -192,7 +192,6 @@ class ThemeController extends Controller
                     status_code: 404,
                     isJson: false
                 );
-
                 return redirect()->back()->withInput()->with(compact('response'));
             }
 
@@ -214,7 +213,7 @@ class ThemeController extends Controller
                 isJson: false,
             );
 
-            return redirect()->withInput()->with(compact('response'));
+            return redirect()->back()->withInput()->with(compact('response'));
         }
     }
 }

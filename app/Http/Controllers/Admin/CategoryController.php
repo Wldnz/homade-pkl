@@ -46,7 +46,7 @@ class CategoryController extends Controller
             $response = $this->responseData->create(
                 'Berhasil mendapatkan category',
                 [
-                    'pagination' => new PaginationResource($categories),
+                    'pagination' => (new PaginationResource($categories))->toArray($request),
                     'categories' => $categories,
                 ],
                 isJson: false,
@@ -138,7 +138,7 @@ class CategoryController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil Menambahkan data kategori',
-                status_code:201,
+                status_code: 201,
                 isJson: false
             );
 
@@ -187,7 +187,7 @@ class CategoryController extends Controller
 
             if (!$category) {
                 $response = $this->responseData->create(
-                    'Tidak Dapat Menemukan Category!',
+                    'Tidak Dapat Menemukan Kategori!',
                     status: 'warning',
                     status_code: 404,
                     isJson: false

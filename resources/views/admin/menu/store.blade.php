@@ -7,7 +7,7 @@
 		'sass/app.scss',
 		'sass/metronic/style.scss',
 		'resources/js/app.js',
-		'resources/js/metronic/scripts.js'
+		// 'resources/js/metronic/scripts.js'
 	])
 	<meta charset="utf-8" />
 	<meta name="description"

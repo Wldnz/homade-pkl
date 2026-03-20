@@ -28,7 +28,7 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         try {
-            $currentDate = now()->setTime(0,0,0);
+            $currentDate = now()->setTime(0, 0, 0);
             $week = (int) $request->query('week', $currentDate->weekOfMonth);
 
             $currentDate->weekOfMonth($week);
@@ -130,15 +130,5 @@ class ScheduleController extends Controller
             );
             return redirect()->back()->withInput()->with(compact('response'));
         }
-    }
-
-    public function detail(string $id)
-    {
-        return view('admin.schedule.detail');
-    }
-
-    public function store()
-    {
-        return view('admin.schedule.store');
     }
 }

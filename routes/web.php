@@ -110,7 +110,7 @@ Route::middleware([
     Route::get('/packages', [\App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages');
     Route::get('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'detail'])->name('detail-package');
     Route::get('/package-create', [\App\Http\Controllers\Admin\PackageController::class, 'store'])->name('add-package-page');
-    Route::post('/package-create', [\App\Http\Controllers\Admin\PackageController::class, 'storeHandler'])->name('add-package');
+    Route::post('/package', [\App\Http\Controllers\Admin\PackageController::class, 'storeHandler'])->name('add-package');
     Route::put('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'editHandler'])->name('edit-package');
     Route::delete('/packages/{id}', [\App\Http\Controllers\Admin\PackageController::class, 'deleteHandler'])->name('delete-package');
 
@@ -142,6 +142,10 @@ Route::middleware([
     Route::put('/order/status-delivery/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'changeDeliveryStatusHandler'])->name('change-status-delivery-order');
     // complete the transaction
     Route::post('/order/complete/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'completeTheTransactionHandler'])->name('complete-order');
+    // kirim invoice ke customer?
+    Route::post('/order/send-invoice/{id}', [\App\Http\Controllers\Admin\TransactionController::class, 'completeTheTransactionHandler'])->name('send-invoice-order');
+    // refund?
+    // buat pdf / export?
 
     // Partner / Perusahaan Yang Bekerja Sama
     Route::get('/partners', [\App\Http\Controllers\Admin\PartnerController::class, 'index'])->name('partners');

@@ -65,11 +65,11 @@ License: For each use you must have a valid license purchased only from above li
 		<tbody>
 			@foreach ($response['data']['packages'] as $package)
 				<tr>
-					<td>{{ $package->id }}</td>
-					<td>{{ $package->name }}</td>
-					<td>{{ $package->minimum_order }}</td>
-					<td>{{ $package->created_at }}</td>
-					<td><a href="{{ route('admin.detail-package', ['id' => $package->id]) }}">Detail</a></td>
+					<td>{{ $package['id'] }}</td>
+					<td>{{ $package['name'] }}</td>
+					<td>{{ $package['minimum_order'] }}</td>
+					<td>{{ $package['created_at'] }}</td>
+					<td><a href="{{ route('admin.detail-package', ['id' => $package['id']]) }}">Detail</a></td>
 				</tr>
 			@endforeach
 		</tbody>

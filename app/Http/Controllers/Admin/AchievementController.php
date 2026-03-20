@@ -48,8 +48,8 @@ class AchievementController extends Controller
             $response = $this->responseData->create(
                 'Berhasil Mendapatkan prestasi - prestasi!',
                 [
-                    'pagination' => new PaginationResource($achievements),
-                    'achievements' => $achievements,
+                    'pagination' => (new PaginationResource($achievements))->toArray($request),
+                    'achievements' => $achievements->toArray()['data'],
                 ],
                 isJson: false,
             );
@@ -87,7 +87,7 @@ class AchievementController extends Controller
 
             $response = $this->responseData->create(
                 'Berhasil Mendapatkan prestasi',
-                new DetailAchievement($achievement),
+                (new DetailAchievement($achievement))->toArray($request),
                 isJson: false,
             );
 
@@ -129,7 +129,7 @@ class AchievementController extends Controller
             ]);
 
             if ($validator->fails()) {
-                $response = $this->responseData->create(
+               $response = $this->responseData->create(
                     'Data yang diberikan belum valid!',
                     errors: $validator->errors()->toArray(),
                     status: 'warning',
@@ -143,7 +143,7 @@ class AchievementController extends Controller
                 $request->only('name', 'description', 'date_at'),
             );
 
-            $response = $this->responseData->create(
+           $response = $this->responseData->create(
                 'Berhasil menambahkan prestasi',
                 status_code:201,
                 isJson: false,
@@ -198,7 +198,7 @@ class AchievementController extends Controller
 
             if (!$achievement) {
                 $response = $this->responseData->create(
-                    'Tidak dapat menemukan paket menu',
+                    'Tidak dapat menemukan prestasi',
                     status: 'warning',
                     status_code: 404,
                     isJson: false,
@@ -239,7 +239,7 @@ class AchievementController extends Controller
 
             if (!$achievement) {
                 $response = $this->responseData->create(
-                    'Tidak dapat menemukan paket menu',
+                    'Tidak dapat menemukan prestasi',
                     status: 'warning',
                     status_code: 404,
                     isJson: false,

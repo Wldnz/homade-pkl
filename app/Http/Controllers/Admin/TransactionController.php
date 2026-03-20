@@ -72,8 +72,8 @@ class TransactionController extends Controller
             $response = $this->responseData->create(
                 'Berhasil Mendapatkan Transaksi',
                 [
-                    'pagination' => new PaginationResource($transactions),
-                    'orders' => $transactions,
+                    'pagination' => (new PaginationResource($transactions))->toArray($request),
+                    'orders' => $transactions->toArray()['data'],
                 ],
                 isJson: false
             );
@@ -143,7 +143,7 @@ class TransactionController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'shipping_cost' => 'numeric|required|min:0',
+                'shipping_cost' => 'required|numeric|min:0',
             ], [
                 'required' => 'Pastikan mengirimakn :attribute ya!',
                 'number' => ':attribute harus berupa angka ya',

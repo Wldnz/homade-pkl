@@ -78,10 +78,29 @@ class DetailTransactionResource extends JsonResource
             ] : null,
 
             'status_information' => isset($this->needed_status_information) && $this->needed_status_information?   [
-                'refund' => RefundStatus::cases(),
-                'transaction' => StatusTransaction::cases(),
-                'delivery' => StatusDelivery::cases(),
-                'payment_proof' => TransactionPaymentProofStatus::cases(),
+                'refund' => [
+                    'none' => RefundStatus::NONE,
+                    'pending' => RefundStatus::PENDING,
+                    'success' => RefundStatus::SUCCESS,
+                    ],
+                'transaction' => [
+                    'wait_for_invoice' => StatusTransaction::WAITING_FOR_INVOICE,
+                    'pending' => StatusTransaction::PENDING,
+                    'paid' => StatusTransaction::PAID,
+                    'success' => StatusTransaction::SUCCESS
+                ],
+                'delivery' => [
+                    'waiting_for_confirmation' => StatusDelivery::WAIT_FOR_CONFIRMATION,
+                    'process' => StatusDelivery::PROCESS,
+                    'waiting_for_pick_up' => StatusDelivery::WAIT_FOR_PICK_UP,
+                    'on_the_way' => StatusDelivery::ON_THE_WAY,
+                    'delivered' => StatusDelivery::DELIVERED
+                ],
+                'payment_proof' => [
+                    'wait_for_confirmation' => TransactionPaymentProofStatus::WAIT_FOR_CONFIRMATION,
+                    'accepted' => TransactionPaymentProofStatus::ACCEPTED,
+                    'rejected' => TransactionPaymentProofStatus::REJECTED
+                ],
             ] : null,
 
             'created_at' => $this->created_at,

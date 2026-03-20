@@ -113,11 +113,11 @@ class TransactionService
         string|null $token = null,
     ) {
         return Transaction::where('id', $id)
-            ->when($isCustomer, function ($query)  use($token) {
+            ->when($isCustomer, function ($query) use ($token) {
                 $user = auth()->user();
-                if($user){
+                if ($user) {
                     return $query->where('id_user', auth()->user()->id);
-                }else{
+                } else {
                     return $query->where('access_token', $token);
                 }
             })
@@ -140,108 +140,108 @@ class TransactionService
         $cloudinary = new CloudinaryClient();
         $uplouded = null;
         try {
-                $createdTransaciton = Transaction::create([
-                    'id_user' => $data['user_info']['id'],
-                    'shipping_cost' => $data['transaction']['shipping_cost'],
-                    'subtotal' => $data['transaction']['sub_total'],
-                    'total_price' => $data['transaction']['sub_total'] + $data['transaction']['shipping_cost'],
-                    'total_items' => $data['transaction']['total_item'],
-                    'category' => $data['transaction']['category'],
-                    'note' => $data['transaction']['note'],
-                    'delivery_at' => $data['delivery_info']['delivery_at'],
-                    'contact_email' => $data['user_info']['email'],
-                    'created_at' => $data['transaction']['is_created'] ? $data['transaction']['created_at'] : now(),
-                    'updated_at' => now(),
-                ]);
+            $createdTransaciton = Transaction::create([
+                'id_user' => $data['user_info']['id'],
+                'shipping_cost' => $data['transaction']['shipping_cost'],
+                'subtotal' => $data['transaction']['sub_total'],
+                'total_price' => $data['transaction']['sub_total'] + $data['transaction']['shipping_cost'],
+                'total_items' => $data['transaction']['total_item'],
+                'category' => $data['transaction']['category'],
+                'note' => $data['transaction']['note'],
+                'delivery_at' => $data['delivery_info']['delivery_at'],
+                'contact_email' => $data['user_info']['email'],
+                'created_at' => $data['transaction']['is_created'] ? $data['transaction']['created_at'] : now(),
+                'updated_at' => now(),
+            ]);
 
-                // jika dibuat sama admin
-                if(!$is_created_by_customer){
-                    $createdTransaciton->is_guest = $data['transaction']['is_guest'];
-                    $createdTransaciton->access_token = $data['transaction']['is_guest'] ? Str::random(60) : null;
-                    // jika transaction itu success
-                    if($data['transaction']['is_success']){
-                        $createdTransaciton->status = StatusTransaction::SUCCESS;
-                        $createdTransaciton->status_delivery = StatusDelivery::DELIVERED;
+            // jika dibuat sama admin
+            if (!$is_created_by_customer) {
+                $createdTransaciton->is_guest = $data['transaction']['is_guest'];
+                $createdTransaciton->access_token = $data['transaction']['is_guest'] ? Str::random(60) : null;
+                // jika transaction itu success
+                if ($data['transaction']['is_success']) {
+                    $createdTransaciton->status = StatusTransaction::SUCCESS;
+                    $createdTransaciton->status_delivery = StatusDelivery::DELIVERED;
+                }
+                // jika transaksi sudah ada sebelumnya
+                if ($data['transaction']['is_created']) {
+                    $createdTransaciton->setCreatedAt(Carbon::parse($data['transaction']['created_at']));
+                }
+                $is_transfer = $data['transaction']['payment_type'] !== 'transfer';
+                if ($is_transfer && $image) {
+                    $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
+                    if (!$uplouded) {
+                        throw new Exception('Gagal Dalam Menyimpan Gambar');
                     }
-                    // jika transaksi sudah ada sebelumnya
-                    if($data['transaction']['is_created']){
-                        $createdTransaciton->setCreatedAt(Carbon::parse($data['transaction']['created_at']));
-                    }
-                    $is_transfer = $data['transaction']['payment_type'] !== 'transfer';
-                    if($is_transfer && $image){
-                        $uplouded = $cloudinary->uploudPaymentProof($image->getRealPath());
-                        if(!$uplouded){
-                            throw new Exception('Gagal Dalam Menyimpan Gambar');
-                        }
-                        TransactionPaymentProof::create([
-                            'id_transaction' => $createdTransaciton->id,
-                            'public_id' => $uplouded['public_id'],
-                            'url' => $uplouded['secure_url'],
-                            'reason' => 'Sudah Membayar',
-                            'created_at' => now(),
-                            'status' => TransactionPaymentProofStatus::ACCEPTED,
-                            'updated_at' => now(),
-                        ]);
-                    }
-
-                    $createdTransaciton->save();
+                    TransactionPaymentProof::create([
+                        'id_transaction' => $createdTransaciton->id,
+                        'public_id' => $uplouded['public_id'],
+                        'url' => $uplouded['secure_url'],
+                        'reason' => 'Sudah Membayar',
+                        'created_at' => now(),
+                        'status' => TransactionPaymentProofStatus::ACCEPTED,
+                        'updated_at' => now(),
+                    ]);
                 }
 
+                $createdTransaciton->save();
+            }
 
-                foreach ($data['summary_orders']['items'] as $menu) {
-                    foreach ($menu['packages'] as $price) {
-                        TransactionOrder::create([
-                            'id_transaction' => $createdTransaciton->id,
-                            'id_menu_price' => $price['id'],
-                            'id_menu' => $menu['id'],
-                            'total_price' => $price['quantity'] * $price['price'],
-                            'price_at_purchase' => $price['price'],
-                            'quantity' => $price['quantity'],
-                            'note' => $price['note'] ?? '',
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-                    }
+
+            foreach ($data['summary_orders']['items'] as $menu) {
+                foreach ($menu['packages'] as $price) {
+                    TransactionOrder::create([
+                        'id_transaction' => $createdTransaciton->id,
+                        'id_menu_price' => $price['id'],
+                        'id_menu' => $menu['id'],
+                        'total_price' => $price['quantity'] * $price['price'],
+                        'price_at_purchase' => $price['price'],
+                        'quantity' => $price['quantity'],
+                        'note' => $price['note'] ?? '',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
                 }
-                $address = $data['delivery_info']['user_address'];
-                $address_raw_data = [
-                    'id_transaction' => $createdTransaciton->id,
-                    'received_name' => $address['received_name'] ?? $address['fullname'],
-                    'phone' => $address['phone'],
-                    'label' => $address['label'],
-                    'address' => $address['address'],
-                    'note' => $address['note'] ?? '',
-                    'longitude' => $address['longitude'],
-                    'latitude' => $address['latitude'],
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
-                TransactionAddress::create($address_raw_data);
+            }
+            $address = $data['delivery_info']['user_address'];
+            $address_raw_data = [
+                'id_transaction' => $createdTransaciton->id,
+                'received_name' => $address['received_name'] ?? $address['fullname'],
+                'phone' => $address['phone'],
+                'label' => $address['label'],
+                'address' => $address['address'],
+                'note' => $address['note'] ?? '',
+                'longitude' => $address['longitude'],
+                'latitude' => $address['latitude'],
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+            TransactionAddress::create($address_raw_data);
 
-                // update alamat & nomor telepon pengguna
-                if (isset($address['save_to_profile']) && $address['save_to_profile']) {
-                    $address_raw_data['id_user'] = $data['user_info']['id'];
-                    $address_raw_data['is_main_address'] = $address['is_main_address'] ?? false;
-                    (new UserAddressService())->saveAndChangeTheMainAdress($address_raw_data);
-                }
+            // update alamat & nomor telepon pengguna
+            if (isset($address['save_to_profile']) && $address['save_to_profile']) {
+                $address_raw_data['id_user'] = $data['user_info']['id'];
+                $address_raw_data['is_main_address'] = $address['is_main_address'] ?? false;
+                (new UserAddressService())->saveAndChangeTheMainAdress($address_raw_data);
+            }
 
-                // bahaya nich.....
-                if (isset($data['is_changed']) && $data['is_changed']) {
-                    $data['user_info']->save();
-                }
+            // bahaya nich.....
+            if (isset($data['is_changed']) && $data['is_changed']) {
+                $data['user_info']->save();
+            }
 
-                DB::commit();
+            DB::commit();
 
-                // send email disini?
+            // send email disini?
 
-                Mail::to($createdTransaciton->contact_email)->send(new SuccessCreateTransactionEmail($createdTransaciton));
+            Mail::to($createdTransaciton->contact_email)->send(new SuccessCreateTransactionEmail($createdTransaciton));
 
-                return [
-                    'is_success' => true,
-                    'message' => 'Berhasil dalam membuat transaksi!',
-                    'user' => $data['user_info'],
-                    'transaction' => $createdTransaciton,
-                ];
+            return [
+                'is_success' => true,
+                'message' => 'Berhasil dalam membuat transaksi!',
+                'user' => $data['user_info'],
+                'transaction' => $createdTransaciton,
+            ];
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error when creating the transaction: ' . $e->getMessage());
@@ -266,7 +266,7 @@ class TransactionService
 
         // kalo mau uploud payment proff harus pending kocak wkwkkwkw salah gw 
 
-        if (StatusTransaction::tryFrom((string )$transaction->status) == StatusTransaction::PENDING) {
+        if (StatusTransaction::tryFrom((string) $transaction->status) == StatusTransaction::PENDING) {
             if ($transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
                 return [
                     'is_success' => false,
@@ -350,17 +350,17 @@ class TransactionService
         int $shipping_cost
     ) {
         try {
+            $isAcceptableStatus = $this->isAcceptableStatusForChangingShippingCost($transaction->status);
+            // status_bukti_pembayaran yang aman itu => rejected,
+            if ($transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof) || !$isAcceptableStatus) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak bisa merubah ongkos kirim dikarenakan Status Transaksi Sudah Bukan Menunggu Invoice Dan Status Bukti Pembayaran Bukan Ditolak',
+                ];
+            }
             return DB::transaction(function () use ($transaction, $shipping_cost) {
                 // cek terlebih dahulu statusnya!
                 // waiting_for_invoice => aman
-                $isAcceptableStatus = $this->isAcceptableStatusForChangingShippingCost($transaction->status);
-                // status_bukti_pembayaran yang aman itu => rejected,
-                if ($transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof) || !$isAcceptableStatus) {
-                    return [
-                        'is_success' => false,
-                        'message' => 'Tidak bisa merubah ongkos kirim dikarenakan Status Transaksi Sudah Bukan Menunggu Invoice Dan Status Bukti Pembayaran Bukan Ditolak',
-                    ];
-                }
 
                 $transaction->shipping_cost = $shipping_cost;
                 $transaction->total_price = $transaction->subtotal + $shipping_cost;
@@ -372,7 +372,7 @@ class TransactionService
                     'message' => 'Berhasil Merubah Ongkos Kirim & Total Harga Transaksi'
                 ];
             });
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error When change the shipping cost : ' . $e->getMessage());
             return [
@@ -388,14 +388,14 @@ class TransactionService
         bool $isManagement = true,
     ) {
         try {
+            // apakah status transaksi masih waiting_for_invoice?
+            if (!in_array(StatusTransaction::from((string) $transaction->status), [StatusTransaction::WAITING_FOR_INVOICE, StatusTransaction::PENDING]) || $transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
+                return [
+                    'is_success' => false,
+                    'message' => 'Tidak Bisa Membatalkan Transaksi Syarat & Ketentuan Tidak Terpenuhi'
+                ];
+            }
             return DB::transaction(function () use ($transaction, $reason, $isManagement) {
-                // apakah status transaksi masih waiting_for_invoice?
-                if (!in_array(StatusTransaction::from((string) $transaction->status), [StatusTransaction::WAITING_FOR_INVOICE, StatusTransaction::PENDING]) || $transaction->payment_proof && !$this->isPaymentProofRejected($transaction->payment_proof)) {
-                    return [
-                        'is_success' => false,
-                        'message' => 'Tidak Bisa Membatalkan Transaksi Syarat & Ketentuan Tidak Terpenuhi'
-                    ];
-                }
                 $transaction->status = $isManagement ? StatusTransaction::CANCELLED_BY_ADMIN : StatusTransaction::CANCELLED_BY_CUSTOMER;
                 $transaction->cancelled_reason = $reason;
                 $transaction->save();
@@ -500,7 +500,7 @@ class TransactionService
                 if ($this->isPaymentProofRejected($transaction->payment_proof)) {
                     return [
                         'is_success' => false,
-                        'message' => ' Status Bukti Pembayaran Sudah Di Tolak'
+                        'message' => 'Status Bukti Pembayaran Sudah Di Tolak'
                     ];
                 }
                 // apakah transaksi masih bisa menerima pergnatian harga? atau status transaksi sudah di byarkan namun masih di proses

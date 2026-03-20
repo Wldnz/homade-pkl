@@ -310,15 +310,16 @@ class MenuService
                 // cek packages
                 if (isset($data['packages'])) {
                     foreach ($data['packages'] as $package) {
-                        MenuPrice::create([
-                            'id_menu' => $menu->id,
-                            'id_package' => $package['package_id'],
-                            'price' => $package['price'],
-                            'created_at' => now(),
-                            'update_at' => now(),
-                        ]);
+                        if ($package['price']) {
+                            MenuPrice::create([
+                                'id_menu' => $menu->id,
+                                'id_package' => $package['package_id'],
+                                'price' => $package['price'],
+                                'created_at' => now(),
+                                'update_at' => now(),
+                            ]);
+                        }
                     }
-
                 }
 
 
@@ -493,7 +494,7 @@ class MenuService
                 }
                 $date = Carbon::parse($start_date);
                 return [
-                    'is_success' => false,
+                    'is_success' => true,
                     'message' => 'Berhasil dalam mengubah data menu minggu ke ' . $date->weekOfMonth
                 ];
             });

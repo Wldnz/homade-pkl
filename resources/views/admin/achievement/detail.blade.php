@@ -20,7 +20,7 @@
         </div>
          <div style="display:flex; flex-direction:column; gap:10px;">
             <label for="date_at">Tanggal Di Dapatkan</label>
-            {{-- <input type="text" name="date_at" value="{{ old('date_at') ?? $achievement['date_at'] }}"> --}}
+            <input type="date" name="date_at" value="{{ old('date_at') ?? $achievement['date_at'] }}">
         </div>
         <button>Simpan Perubahan</button>
     </form>

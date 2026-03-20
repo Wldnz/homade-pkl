@@ -49,7 +49,7 @@ class PackageService{
         if(!$uplouded){
             return [
                 'is_success' => false,
-                'message' => 'Kami tidak berhasil dalam menguploud gambar'
+                'message' => 'Tidak berhasil dalam menguploud gambar'
             ];
         }
 

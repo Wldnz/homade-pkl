@@ -29,7 +29,11 @@ class PackageController extends Controller
         try {
             $search = $request->query('search');
             $limit = $request->query('limit', 8);
-            $packages = $this->packageService->all($search, $limit);
+            $packages = $this->packageService->all(
+                $search,
+                $limit,
+                true
+            );
 
             if ($packages->isEmpty()) {
                 $response = $this->responseData->create(
@@ -44,8 +48,8 @@ class PackageController extends Controller
             $response = $this->responseData->create(
                 'Berhasil Mendapatkan Paket - Paket Menu!',
                 [
-                    'pagination' => new PaginationResource($packages),
-                    'packages' => PackageResource::collection($packages)
+                    'pagination' => (new PaginationResource($packages))->toArray($request),
+                    'packages' => $packages
                 ],
                 isJson: false,
             );
@@ -157,6 +161,7 @@ class PackageController extends Controller
 
             $response = $this->responseData->create(
                 $created_info['message'],
+                status_code:201,
                 isJson: false,
             );
 

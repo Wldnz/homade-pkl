@@ -277,17 +277,15 @@ License: For each use you must have a valid license purchased only from above li
 										<tr>
 											<th scope="col">ID Menu</th>
 											<th scope="col">Nama Menu</th>
-											<th scope="col">Tanggal </th>
 											<th scope="col">Detail Menu</th>
 										</tr>
 									</thead>
 									<tbody>
 										@foreach ($response['data']['menus'] as $menu)
 											<tr>
-												<td>{{ $menu->id }}</td>
-												<td>{{ $menu->name }}</td>
-												<td>{{ $menu->created_at }}</td>
-												<td><a href="{{ route('admin.detail-menu', ['id' => $menu->id]) }}">Detail</a>
+												<td>{{ $menu['id'] }}</td>
+												<td>{{ $menu['name'] }}</td>
+												<td><a href="{{ route('admin.detail-menu', ['id' => $menu['id']]) }}">Detail</a>
 												</td>
 											</tr>
 										@endforeach

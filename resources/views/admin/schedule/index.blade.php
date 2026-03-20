@@ -185,7 +185,7 @@
                                 <div id="slot-{{ $day['date_key'] }}-{{ $index }}">
                                     @if($menu)
                                         <div class="slot-filled shadow-sm">
-                                            <input type="hidden" name="schedules[{{ $day['date_key'] }}][]" value="{{ $menu['id'] }}">
+                                            <input type="hidden" name="schedules[{{ $day['date_key']}}][]" value="{{ $menu['id'] }}">
                                             
                                             <img src="{{ $menu['image_url'] }}" loading="lazy" alt="Menu" onerror="this.src='https://placehold.co/300x200?text=No+Image'">
                                             <div class="menu-title-badge">{{ $menu['name'] }}</div>

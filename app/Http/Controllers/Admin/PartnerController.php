@@ -47,8 +47,8 @@ class PartnerController extends Controller
             $response = $this->responseData->create(
                 'Berhasil mendapatkan partner - partner perusahaan',
                 [
-                    'pagination' => new PaginationResource($partners),
-                    'partners' => $partners,
+                    'pagination' => (new PaginationResource($partners))->toArray($request),
+                    'partners' => $partners->toArray()['data'],
                 ],
                 isJson: false
             );

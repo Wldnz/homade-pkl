@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\DetailMenuResource;
 use App\Http\Resources\Admin\PackageResource;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\MenuResource;
 use App\Http\Resources\PaginationResource;
 use App\Http\Resources\ThemeResource;
 use App\ResponseData;
@@ -58,7 +59,7 @@ class MenuController extends Controller
 
             if ($menus->isEmpty()) {
                 $response = $this->responseData->create(
-                    'Tidak dapa menemukan menu',
+                    'Tidak dapat menemukan menu',
                     status: 'warning',
                     status_code: 404,
                     isJson: false,
@@ -70,7 +71,7 @@ class MenuController extends Controller
                 'Berhasil Mendapatkan Menu',
                 [
                     'pagination' => new PaginationResource($menus),
-                    'menus' => $menus,
+                    'menus' => MenuResource::collection($menus)->toArray($request),
                 ],
                 isJson: false
             );
@@ -223,6 +224,7 @@ class MenuController extends Controller
 
             $response = $this->responseData->create(
                 $created_info['message'],
+                status_code: 201,
                 isJson: false,
             );
 
